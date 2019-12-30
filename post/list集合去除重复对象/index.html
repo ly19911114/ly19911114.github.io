@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta property="og:title" content=" List集合去除重复对象 &middot;  Welcome to the mysterious world" />
+  
+  <meta property="og:site_name" content="Welcome to the mysterious world" />
+  <meta property="og:url" content="https://ly19911114.github.io/post/list%E9%9B%86%E5%90%88%E5%8E%BB%E9%99%A4%E9%87%8D%E5%A4%8D%E5%AF%B9%E8%B1%A1/" />
+  
+  
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:article:published_time" content="2019-12-30T10:18:24&#43;08:00" />
+  
+  
+
+  <title>
+     List集合去除重复对象 &middot;  Welcome to the mysterious world
+  </title>
+
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/main.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/github.css" />
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400" type="text/css">
+  <link rel="shortcut icon" href="https://ly19911114.github.io/images/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://ly19911114.github.io/images/apple-touch-icon.png" />
+  
+</head>
+<body>
+    <header class="global-header"  style="background-image:url( /images/bg.jpg )">
+    <section class="header-text">
+      <h1><a href="https://ly19911114.github.io/">Welcome to the mysterious world</a></h1>
+      
+      <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+      
+      <a href="https://ly19911114.github.io/" class="btn-header btn-back hidden-xs">
+        <i class="fa fa-angle-left" aria-hidden="true"></i>
+        &nbsp;Home
+      </a>
+      
+      
+    </section>
+  </header>
+  <main class="container">
+
+
+<article>
+  <header>
+    <h1 class="text-primary">List集合去除重复对象</h1>
+    <div class="post-meta clearfix">
+    
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2019-12-30T10:18:24&#43;08:00">
+          Dec 30, 2019
+        </time>
+      </div>
+    
+      <div class="pull-right">
+        
+      </div>
+    </div>
+  </header>
+  <section>
+    
+
+<p>引言</p>
+
+<p>最近公司的中间件的中转后台中需要用到List集合去除重复对象这一技术点，下面，由浅入深的进行讲解开展。</p>
+
+<p>再分析代码之前，先来了解下equal和hashcode，因为要去除List重复对象，需要在实体类中重写这两个方法，先来了解这两个方法，更有助于理解代码。</p>
+
+<p>Now,Let is go(Let is 懒的缩写了，这不重要！！)</p>
+
+<p>内容比较冗长，还请耐心看完。</p>
+
+<h1 id="一-项目中为何要重写equals和hashcode方法">一、项目中为何要重写equals和hashcode方法。</h1>
+
+<p>equals()方法在object类中定义如下：</p>
+
+<pre><code class="language-java">
+public boolean equals(Object obj) {  
+    return (this == obj);  
+} 
+</code></pre>
+
+<p>很明显是对两个对象的地址值进行的比较（即比较引用是否相同）。但是我们知道，String 、Math、Integer、Double等这些封装类在使用equals()方法时，已经覆盖了object类的equals()方法。</p>
+
+<p>hashcode()方法在object类中的定义如下：</p>
+
+<pre><code class="language-java"> public native int hashCode();
+</code></pre>
+
+<p>hashCode()方法给对象返回一个hash code值。这个方法被用于hash tables，例如HashMap。</p>
+
+<p>它的性质是：</p>
+
+<p>在一个Java应用的执行期间，如果一个对象提供给equals做比较的信息没有被修改的话，该对象多次调用hashCode()方法，该方法必须始终如一返回同一个integer。</p>
+
+<p>如果两个对象根据equals(Object)方法是相等的，那么调用二者各自的hashCode()方法必须产生同一个integer结果。</p>
+
+<p>并不要求根据equals(java.lang.Object)方法不相等的两个对象，调用二者各自的hashCode()方法必须产生不同的integer结果。然而，程序员应该意识到对于不同的对象产生不同的integer结果，有可能会提高hash table的性能。</p>
+
+<p>大量的实践表明，由Object类定义的hashCode()方法对于不同的对象返回不同的integer。</p>
+
+<p>hashCode()方法和equal()方法的作用其实一样，在<a href="http://lib.csdn.net/base/java">Java</a>里都是用来对比两个对象是否相等一致，那么equal()既然已经能实现对比的功能了，为什么还要hashCode()呢？</p>
+
+<p>​    因为重写的equal（）里一般比较的比较全面比较复杂，这样效率就比较低，而利用hashCode()进行对比，则只要生成一个hash值进行比较就可以了，效率很高，那么hashCode()既然效率这么高为什么还要equal()呢？</p>
+
+<p>​    因为hashCode()并不是完全可靠，有时候不同的对象他们生成的hashcode也会一样（生成hash值得公式可能存在的问题），所以hashCode()只能说是大部分时候可靠，并不是绝对可靠，所以我们可以得出：</p>
+
+<p>​     1.equal()相等的两个对象他们的hashCode()肯定相等，也就是用equal()对比是绝对可靠的。</p>
+
+<p>​     2.hashCode()相等的两个对象他们的equal()不一定相等，也就是hashCode()不是绝对可靠的。</p>
+
+<p>​    所有对于需要大量并且快速的对比的话如果都用equal()去做显然效率太低，<strong>所以解决方式是，每当需要对比的时候，首先用hashCode()去对比，如果hashCode()不一样，则表示这两个对象肯定不相等（也就是不必再用equal()去再对比了）,如果hashCode()相同，此时再对比他们的equal()，如果equal()也相同，则表示这两个对象是真的相同了，这样既能大大提高了效率也保证了对比的绝对正确性！</strong></p>
+
+<p>然而hashCode()和equal()一样都是基本类Object里的方法，而和equal()一样，Object里hashCode()里面只是返回当前对象的地址，如果是这样的话，那么我们相同的一个类，new两个对象，由于他们在内存里的地址不同，则他们的hashCode（）不同，所以这显然不是我们想要的，所以我们必须重写我们类的hashCode()方法，即一个类，在hashCode()里面返回唯一的一个hash值。</p>
+
+<p>综上所述，在实际项目中，根据也无需求，必须要重写equals和hashcode方法。</p>
+
+<h1 id="二-如何进行list对象的去除操作">二、如何进行List对象的去除操作</h1>
+
+<p>首先要在实体类中重写equals()和hashcode()方法，至于为什么要重新，请参考标题一，下面是项目中 RfidGoodsResponse实体类的实际代码：</p>
+
+<pre><code class="language-java">public class RfidGoodsResponse {
+    private String goodsName;
+    private int goodsNum;
+    private Integer goodsId;
+
+    public Integer getGoodsId() {
+        return goodsId;
+    }
+
+    public void setGoodsId(Integer goodsId) {
+        this.goodsId = goodsId;
+    }
+
+    public String getGoodsName() {
+        return goodsName;
+    }
+
+    public void setGoodsName(String goodsName) {
+        this.goodsName = goodsName;
+    }
+
+    public int getGoodsNum() {
+        return goodsNum;
+    }
+
+    public void setGoodsNum(int goodsNum) {
+        this.goodsNum = goodsNum;
+    }
+
+    @Override
+    public boolean equals(Object arg0){
+        RfidGoodsResponse rfidGoodsResponse=(RfidGoodsResponse) arg0;
+        return rfidGoodsResponse.getGoodsId().equals(goodsId);
+    }
+
+    @Override
+    public int hashCode() {
+        // TODO Auto-generated method stub
+        Integer str =goodsId;
+        //返回名字的哈希码
+        return str.hashCode();
+    }
+
+
+
+}
+</code></pre>
+
+<p>这个是实体类中的代码。</p>
+
+<p>下面试controller类中的代码（去重复操作在里面）:</p>
+
+<pre><code class="language-java">/**
+     * 近场RFID阅读器上传物品EPS数据列表
+     */
+    @TcpRequestMapping(deviceType = DeviceCmdConstants.DEVICE_TYPE_SETTLEMENT, func = DeviceCmdConstants.FUNC_SETTLEMENT__CHECK_NEAR_GOODS)
+    public void CheckGoodsSuccess(RFIDNearDataRequest request, TcpClientInfo tcpClientInfo) {
+        CheckGoodsNearResultResponse response = new CheckGoodsNearResultResponse();
+        List&lt;RfidGoodsResponse&gt; rfidGoodsResponsesList = new ArrayList&lt;&gt;();
+        response.setDeviceType(DeviceCmdConstants.DEVICE_TYPE_SETTLEMENT);
+        response.setFunc(DeviceCmdConstants.FUNC_SETTLEMENT__CHECK_NEAR_GOODS_RESULT);
+        //获取近场RFID设备扫描到的物品RFIDSN编号集合
+        List&lt;RFIDData&gt; rfids=request.getRfids();
+        for (int i=0;i&lt;rfids.size();i++){
+            int num=0;
+            String rfidSn=rfids.get(i).getData();
+            //根据rfidSn查找对应的
+            RfidGoodsEntity rfidGoodsEntity =rfidGoodsService.getByRFIDSn(rfidSn);
+            int goodsId=rfidGoodsEntity.getGoodsId();
+            //根据goodsId查找物品名称
+            GoodsEntity goodsEntity =goodsSservice.findById(goodsId);
+            String goodsName=goodsEntity.getGoodsName();
+
+            RfidGoodsResponse goodsResponse=new RfidGoodsResponse();
+            goodsResponse.setGoodsName(goodsName);
+            goodsResponse.setGoodsId(goodsId);
+            //遍历goodsID，相同id数量相加
+            for(int j=0;j&lt;rfids.size();j++){
+                String rfidSns=rfids.get(j).getData();
+
+                RfidGoodsEntity rfidGoodsEntitys =rfidGoodsService.getByRFIDSn(rfidSns);
+                int goodsIds=rfidGoodsEntitys.getGoodsId();
+                //goodsId与goodsIds相比较，相等数量加1
+                if (goodsId==goodsIds){
+                    num++;
+                }
+            }
+            goodsResponse.setGoodsNum(num);
+            rfidGoodsResponsesList.add(goodsResponse);
+        }
+       //去除重复
+        Set&lt;RfidGoodsResponse&gt; setData = new HashSet&lt;RfidGoodsResponse&gt;();
+        setData.addAll(rfidGoodsResponsesList);
+        response.setCode(&quot;success&quot;);
+        response.setList(new ArrayList&lt;&gt;(setData));
+
+        clientManager.sendMsg(tcpClientInfo, response);
+    }
+</code></pre>
+
+<p>在setData.addAll(rfidGoodsResponsesList)中，会进入到RfidGoodsResponse实体类中的hashcode和equals。根据比较产生的hashcode值来进行去重复操作，其中的hashcode的源码分析就不在此赘述了(因为看不懂)。</p>
+
+<p>网上有其他方法进行List的去重复操作，但我认为这个代码量最少，也是最适用的。</p>
+
+<p>补充：关于实体类重写equals和hashcode需要注意的细节，我在写的时候就没有注意到，导致测试失败：</p>
+
+<pre><code class="language-java"> @Override
+    public boolean equals(Object arg0){
+        RfidGoodsResponse rfidGoodsResponse=(RfidGoodsResponse) arg0;
+        return rfidGoodsResponse.getGoodsId().equals(goodsId);
+    }
+</code></pre>
+
+<p>return rfidGoodsResponse.getGoodsId().equals(goodsId);这段代码的字段goodsId类型是Integer,如果定义了int goodsId，会报错误Cannot resolve method &lsquo;equals(int)&lsquo;。</p>
+
+<pre><code class="language-java"> @Override
+    public int hashCode() {
+        // TODO Auto-generated method stub
+        Integer str =goodsId;
+        //返回名字的哈希码
+        return str.hashCode();
+    }
+</code></pre>
+
+<p>hashcode同理。</p>
+
+  </section>
+  <footer>
+    
+    
+    
+    <section class="author-info row">
+      <div class="author-avatar col-md-2">
+        
+      </div>
+      <div class="author-meta col-md-6">
+        
+        
+      </div>
+      
+    </section>
+    <ul class="pager">
+      
+      <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Older</a></li>
+      
+      
+      <li class="next"><a href="https://ly19911114.github.io/post/springboot%E4%B8%AD%E7%9A%84configuration%E6%B3%A8%E8%A7%A3%E5%92%8Cbean%E6%B3%A8%E8%A7%A3/">Newer <span aria-hidden="true">&rarr;</span></a></li>
+      
+    </ul>
+  </footer>
+</article>
+
+  </main>
+  <footer class="container global-footer">
+    <div class="copyright-note pull-left">
+      
+    </div>
+    <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <script src="https://ly19911114.github.io/js/highlight.pack.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+  
+  
+</body>
+</html>
+
