@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta property="og:title" content=" SVN分支创建和主干代码的合并问题 &middot;  Welcome to the mysterious world" />
+  
+  <meta property="og:site_name" content="Welcome to the mysterious world" />
+  <meta property="og:url" content="https://ly19911114.github.io/post/svn%E5%88%86%E6%94%AF%E5%88%9B%E5%BB%BA%E5%92%8C%E4%B8%BB%E5%B9%B2%E4%BB%A3%E7%A0%81%E7%9A%84%E5%90%88%E5%B9%B6%E9%97%AE%E9%A2%98/" />
+  
+  
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:article:published_time" content="2019-12-30T16:34:24&#43;08:00" />
+  
+  
+
+  <title>
+     SVN分支创建和主干代码的合并问题 &middot;  Welcome to the mysterious world
+  </title>
+
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/main.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/github.css" />
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400" type="text/css">
+  <link rel="shortcut icon" href="https://ly19911114.github.io/images/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://ly19911114.github.io/images/apple-touch-icon.png" />
+  
+</head>
+<body>
+    <header class="global-header"  style="background-image:url( /images/bg.jpg )">
+    <section class="header-text">
+      <h1><a href="https://ly19911114.github.io/">Welcome to the mysterious world</a></h1>
+      
+      <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+      
+      <a href="https://ly19911114.github.io/" class="btn-header btn-back hidden-xs">
+        <i class="fa fa-angle-left" aria-hidden="true"></i>
+        &nbsp;Home
+      </a>
+      
+      
+    </section>
+  </header>
+  <main class="container">
+
+
+<article>
+  <header>
+    <h1 class="text-primary">SVN分支创建和主干代码的合并问题</h1>
+    <div class="post-meta clearfix">
+    
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2019-12-30T16:34:24&#43;08:00">
+          Dec 30, 2019
+        </time>
+      </div>
+    
+      <div class="pull-right">
+        
+      </div>
+    </div>
+  </header>
+  <section>
+    
+
+<p>最近项目中涉及到了SVN的创建分支，以及分支和主干代码的合并。在此记录一下主要的东西（恩，感觉这位博主的截图好暖心，就忍不住转一下了）~</p>
+
+<h4 id="一-创建分支的意义">一、创建分支的意义：</h4>
+
+<p>在日常项目开发及版本迭代的过程中，经常会遇到这样的场景：当前版本提交QA测试之后，一方面需要在主干上开发下一版本的新需求；另一方面还需要在新的分支上解决QA提的Bug。项目上线之后，需要将分支上的改动合并到主干上。这就需要需要我们熟练掌握分支开发及合并。</p>
+
+<h4 id="二-创建新分支的步骤">二、创建新分支的步骤</h4>
+
+<ol>
+<li><strong>创建</strong>测试<strong>项目并使其和SVN进行关联</strong>： 首先我们在Android Studio中新建一个测试项目SVNTestDemo，然后使其和SVN进行关联（从SVN更新下来的项目可忽略此步，不熟悉此步骤的朋友们请请转至 上一篇）。</li>
+<li><strong>提交本地新增或改变的文件</strong>：创建新分支前，最好先将本地修改的文件提交至 SVN。SVN 每一次提交操作时，都会有一个对应的 Revision。这里我们需要记住创建分支前最后一次提交修改文件时，该操作对应的 Revision（非常重要），以供后续合并分支时使用。</li>
+<li><strong>创建新分支</strong>：将项目切换至Project目录，选中项目后点击右键，依次选择Subversion-&gt;Branch or Tag 如下图所示：
+<img src="https://img-blog.csdnimg.cn/20181030210603577.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NqbTI0ODQ4MzY1NTM=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" />
+之后会弹出如下弹框：
+<img src="https://img-blog.csdnimg.cn/20181030210636524.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NqbTI0ODQ4MzY1NTM=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" />
+可根据需要选择拷贝源、新分支目录、修改分支项目文件名等。然后填写Comment，点击OK。分支创建成功后，在SVN仓库branches目录对应的文件下，右键选择 SVN Update 拉取分支代码。如下图所示：
+<img src="https://img-blog.csdnimg.cn/20181030210744599.png" alt="在这里插入图片描述" />
+双击打开 branches 文件夹，然后右键选择 SVN Update 拉取分支代码：
+<img src="https://img-blog.csdnimg.cn/20181030210810412.png" alt="在这里插入图片描述" />
+拉取成功后，branches文件目录下会出现一个新的文件夹new_branch。至此，新分支创建彻底完成。</li>
+</ol>
+
+<h4 id="三-对主干和分支进行相互合并">三、对主干和分支进行相互合并：</h4>
+
+<p>为方便测试，我们首先分别对分支和主干的文件进行修改并提交（仅供测试使用，实际项目中只有主干和分支文件或代码不相同时才需要合并）。合并之前需要先更新一下代码，保证目标分支本地的代码是最新的，避免不必要的冲突。</p>
+
+<p><strong>1. 将分支的改动合并到主干：</strong>
+在Android Studio中打开主干项目，切换至Project目录，选中项目并点击右键，依次选择Subversion-&gt; Integrate Directory 如下图所示：
+<img src="https://img-blog.csdnimg.cn/20181030211043796.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NqbTI0ODQ4MzY1NTM=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" />
+之后会弹出如下弹框：
+<img src="https://img-blog.csdnimg.cn/2018103021110586.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NqbTI0ODQ4MzY1NTM=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" />
+<strong>注意（此处有坑！！！）</strong>：从上图可以看出合并时，Revision默认选中的都是HEAD（即：最新版），此时若点击OK，主干新创建的类会被删除，主干和分支同时修改的类会被分支覆盖，主干中的文件及其内容将变成和分支一模一样；</p>
+
+<p>显然大多时候这并不是我们想要的，我们需要保留主干的新增文件，同时合并分支的改动。这时<strong>主干（即：Source 1）的 Revision就不应该是最新版 HEAD，而是之前我们所说的 创建分支前最后一次提交修改时，该操作所对应的 Revision</strong>。</p>
+
+<p>获取该Revision的方式：选中Source 1右侧的Revision为Specified，然后点击其右侧的 … 按钮，弹出如下弹框：
+<img src="https://img-blog.csdnimg.cn/20181030211314493.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NqbTI0ODQ4MzY1NTM=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" />
+从图中我们可以看到之前的提交记录，我们选中Revision 4，然后点击 OK 即可。</p>
+
+<p>通过上面方式，修改分支合并时的配置页如下：
+<img src="https://img-blog.csdnimg.cn/20181030211412294.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NqbTI0ODQ4MzY1NTM=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" />
+点击OK，解决合并时的冲突。运行无异常后，提交合并后的文件至SVN即可。</p>
+
+<p><strong>2. 将主干的改动合并到分支：</strong>
+首先在Android Studio中打开分支项目，从SVN更新代码，保证分支对应的本地代码是最新的。
+从主干合并至分支时的其他过程与上述合并过程基本一致，只需将合并配置页的Source 1和Source 2对应的分支路径进行调换，Source 1（即：分支路径）对应的Revision选择创建该分支时，该操作所对应的Revision即可。
+<img src="https://img-blog.csdnimg.cn/20181030211634751.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NqbTI0ODQ4MzY1NTM=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" />
+点击OK，解决合并时的冲突。运行无异常后，提交合并后的文件至SVN即可。</p>
+
+<p>（注意，将分支合并到主干上后，svn show log日志上是没有日志记录的，只有再次点击提交主干代码后，才会有日志记录哈~）</p>
+
+  </section>
+  <footer>
+    
+    
+    
+    <section class="author-info row">
+      <div class="author-avatar col-md-2">
+        
+      </div>
+      <div class="author-meta col-md-6">
+        
+        
+      </div>
+      
+    </section>
+    <ul class="pager">
+      
+      <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Older</a></li>
+      
+      
+      <li class="next"><a href="https://ly19911114.github.io/post/list%E9%9B%86%E5%90%88%E5%8E%BB%E9%99%A4%E9%87%8D%E5%A4%8D%E5%AF%B9%E8%B1%A1/">Newer <span aria-hidden="true">&rarr;</span></a></li>
+      
+    </ul>
+  </footer>
+</article>
+
+  </main>
+  <footer class="container global-footer">
+    <div class="copyright-note pull-left">
+      
+    </div>
+    <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <script src="https://ly19911114.github.io/js/highlight.pack.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+  
+  
+</body>
+</html>
+

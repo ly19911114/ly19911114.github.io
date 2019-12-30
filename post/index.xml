@@ -6,10 +6,27 @@
     <description>Recent content in Posts on Welcome to the mysterious world</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 30 Dec 2019 10:18:24 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 30 Dec 2019 16:34:24 +0800</lastBuildDate>
     
 	<atom:link href="https://ly19911114.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>SVN分支创建和主干代码的合并问题</title>
+      <link>https://ly19911114.github.io/post/svn%E5%88%86%E6%94%AF%E5%88%9B%E5%BB%BA%E5%92%8C%E4%B8%BB%E5%B9%B2%E4%BB%A3%E7%A0%81%E7%9A%84%E5%90%88%E5%B9%B6%E9%97%AE%E9%A2%98/</link>
+      <pubDate>Mon, 30 Dec 2019 16:34:24 +0800</pubDate>
+      
+      <guid>https://ly19911114.github.io/post/svn%E5%88%86%E6%94%AF%E5%88%9B%E5%BB%BA%E5%92%8C%E4%B8%BB%E5%B9%B2%E4%BB%A3%E7%A0%81%E7%9A%84%E5%90%88%E5%B9%B6%E9%97%AE%E9%A2%98/</guid>
+      <description>最近项目中涉及到了SVN的创建分支，以及分支和主干代码的合并。在此记录一下主要的东西（恩，感觉这位博主的截图好暖心，就忍不住转一下了）~
+一、创建分支的意义： 在日常项目开发及版本迭代的过程中，经常会遇到这样的场景：当前版本提交QA测试之后，一方面需要在主干上开发下一版本的新需求；另一方面还需要在新的分支上解决QA提的Bug。项目上线之后，需要将分支上的改动合并到主干上。这就需要需要我们熟练掌握分支开发及合并。
+二、创建新分支的步骤  创建测试项目并使其和SVN进行关联： 首先我们在Android Studio中新建一个测试项目SVNTestDemo，然后使其和SVN进行关联（从SVN更新下来的项目可忽略此步，不熟悉此步骤的朋友们请请转至 上一篇）。 提交本地新增或改变的文件：创建新分支前，最好先将本地修改的文件提交至 SVN。SVN 每一次提交操作时，都会有一个对应的 Revision。这里我们需要记住创建分支前最后一次提交修改文件时，该操作对应的 Revision（非常重要），以供后续合并分支时使用。 创建新分支：将项目切换至Project目录，选中项目后点击右键，依次选择Subversion-&amp;gt;Branch or Tag 如下图所示： 之后会弹出如下弹框： 可根据需要选择拷贝源、新分支目录、修改分支项目文件名等。然后填写Comment，点击OK。分支创建成功后，在SVN仓库branches目录对应的文件下，右键选择 SVN Update 拉取分支代码。如下图所示： 双击打开 branches 文件夹，然后右键选择 SVN Update 拉取分支代码： 拉取成功后，branches文件目录下会出现一个新的文件夹new_branch。至此，新分支创建彻底完成。  三、对主干和分支进行相互合并： 为方便测试，我们首先分别对分支和主干的文件进行修改并提交（仅供测试使用，实际项目中只有主干和分支文件或代码不相同时才需要合并）。合并之前需要先更新一下代码，保证目标分支本地的代码是最新的，避免不必要的冲突。
+1. 将分支的改动合并到主干： 在Android Studio中打开主干项目，切换至Project目录，选中项目并点击右键，依次选择Subversion-&amp;gt; Integrate Directory 如下图所示： 之后会弹出如下弹框： 注意（此处有坑！！！）：从上图可以看出合并时，Revision默认选中的都是HEAD（即：最新版），此时若点击OK，主干新创建的类会被删除，主干和分支同时修改的类会被分支覆盖，主干中的文件及其内容将变成和分支一模一样；
+显然大多时候这并不是我们想要的，我们需要保留主干的新增文件，同时合并分支的改动。这时主干（即：Source 1）的 Revision就不应该是最新版 HEAD，而是之前我们所说的 创建分支前最后一次提交修改时，该操作所对应的 Revision。
+获取该Revision的方式：选中Source 1右侧的Revision为Specified，然后点击其右侧的 … 按钮，弹出如下弹框： 从图中我们可以看到之前的提交记录，我们选中Revision 4，然后点击 OK 即可。
+通过上面方式，修改分支合并时的配置页如下： 点击OK，解决合并时的冲突。运行无异常后，提交合并后的文件至SVN即可。
+2. 将主干的改动合并到分支： 首先在Android Studio中打开分支项目，从SVN更新代码，保证分支对应的本地代码是最新的。 从主干合并至分支时的其他过程与上述合并过程基本一致，只需将合并配置页的Source 1和Source 2对应的分支路径进行调换，Source 1（即：分支路径）对应的Revision选择创建该分支时，该操作所对应的Revision即可。 点击OK，解决合并时的冲突。运行无异常后，提交合并后的文件至SVN即可。
+（注意，将分支合并到主干上后，svn show log日志上是没有日志记录的，只有再次点击提交主干代码后，才会有日志记录哈~）</description>
+    </item>
     
     <item>
       <title>List集合去除重复对象</title>
