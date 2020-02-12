@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta property="og:title" content=" Shiro的复盘 &middot;  Welcome to the mysterious world" />
+  
+  <meta property="og:site_name" content="Welcome to the mysterious world" />
+  <meta property="og:url" content="https://ly19911114.github.io/post/shiro%E7%9A%84%E5%A4%8D%E7%9B%98/" />
+  
+  
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:article:published_time" content="2020-02-12T20:42:30&#43;08:00" />
+  
+  
+
+  <title>
+     Shiro的复盘 &middot;  Welcome to the mysterious world
+  </title>
+
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/main.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/github.css" />
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400" type="text/css">
+  <link rel="shortcut icon" href="https://ly19911114.github.io/images/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://ly19911114.github.io/images/apple-touch-icon.png" />
+  
+</head>
+<body>
+    <header class="global-header"  style="background-image:url( /images/bg.jpg )">
+    <section class="header-text">
+      <h1><a href="https://ly19911114.github.io/">Welcome to the mysterious world</a></h1>
+      
+      <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+      
+      <a href="https://ly19911114.github.io/" class="btn-header btn-back hidden-xs">
+        <i class="fa fa-angle-left" aria-hidden="true"></i>
+        &nbsp;Home
+      </a>
+      
+      
+    </section>
+  </header>
+  <main class="container">
+
+
+<article>
+  <header>
+    <h1 class="text-primary">Shiro的复盘</h1>
+    <div class="post-meta clearfix">
+    
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-02-12T20:42:30&#43;08:00">
+          Feb 12, 2020
+        </time>
+      </div>
+    
+      <div class="pull-right">
+        
+      </div>
+    </div>
+  </header>
+  <section>
+    
+
+<h2 id="一-前言">一、前言</h2>
+
+<p>智慧微仓项目用Shiro添加权限认证，目前已按照业务需求，完成，现在进行总结复盘，主要以代码为主，详细的教程在之前的文章有写，请转到文章&rdquo;shiro权限与SpringBoot整合的知识点&rdquo;。</p>
+
+<h2 id="二-自定义realm">二、自定义Realm</h2>
+
+<hr />
+
+<p>配置这里不再赘述，注意包不要导错，自定义的Realm要继承Shiro的AuthorizingRealm；包括授权和登录验证</p>
+
+<pre><code class="language-java">package com.jeehome.micro.warehouse.config;
+
+import com.jeehome.micro.warehouse.entity.PermissionEntity;
+import com.jeehome.micro.warehouse.entity.RoleEntity;
+import com.jeehome.micro.warehouse.entity.UserEntity;
+import com.jeehome.micro.warehouse.service.UserService;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationInfo;
+import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.authc.SimpleAuthenticationInfo;
+import org.apache.shiro.authz.AuthorizationInfo;
+import org.apache.shiro.authz.SimpleAuthorizationInfo;
+import org.apache.shiro.realm.AuthorizingRealm;
+import org.apache.shiro.subject.PrincipalCollection;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 自定义realm
+ */
+public class CustomRealm extends AuthorizingRealm {
+
+    @Autowired
+    private UserService userService;
+
+    /**
+     * 进行权限校验的时候调用
+     *
+     * @param principals
+     * @return
+     */
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+        System.out.println(&quot;授权 doGetAuthorizationInfo&quot;);
+        //获取用户名
+        String userName = (String) principals.getPrimaryPrincipal();
+
+        UserEntity userEntity = userService.findAllUserInfoByUsername(userName);
+        //定义权限角色名称集合和权限名称集合
+        List&lt;String&gt; stringRoleList = new ArrayList&lt;&gt;();
+        List&lt;String&gt; stringsPermissionList = new ArrayList&lt;&gt;();
+        //获取用户的角色对象集合
+        List&lt;RoleEntity&gt; roleEntityList = userEntity.getRoleEntityList();
+        //遍历roleEntityList获取角色名称
+        for (RoleEntity role : roleEntityList) {
+            //获取角色名称，增加到stringRoleList集合中
+            stringRoleList.add(role.getRoleName());
+            List&lt;PermissionEntity&gt; permissionEntityList = role.getPermissionEntityList();
+            //遍历权限集合，获取权限名称
+            for (PermissionEntity permissionEntity : permissionEntityList) {
+                if (permissionEntity != null) {
+                    stringsPermissionList.add(permissionEntity.getPermissionName());
+                }
+            }
+        }
+        //创建实例
+        SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
+        //增加角色集合
+        simpleAuthorizationInfo.addRoles(stringRoleList);
+        //增加权限集合
+        simpleAuthorizationInfo.addStringPermissions(stringsPermissionList);
+
+        return simpleAuthorizationInfo;
+    }
+
+    /**
+     * 用户登录的时候会调用
+     *
+     * @param token
+     * @return
+     * @throws AuthenticationException
+     */
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+        System.out.println(&quot;认证 doGetAuthenticationInfo&quot;);
+        //从token获取用户信息,token代表用户输入的信息
+        String userName = (String) token.getPrincipal();
+        UserEntity userEntity = userService.findAllUserInfoByUsername(userName);
+        String pwd = userEntity.getPassword();
+        if (pwd == null || &quot;&quot;.equals(pwd)) {
+            return null;
+        }
+        //返回一个封装了用户信息的AuthenticationInfo实例
+        return new SimpleAuthenticationInfo(userName, pwd, this.getClass().getName());
+    }
+}
+
+</code></pre>
+
+<h2 id="三-自定义角色filter">三、自定义角色filter</h2>
+
+<p>我们先来看一下Shiro自带的角色filter,如下：</p>
+
+<pre><code class="language-java">public boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) throws IOException {
+
+        Subject subject = getSubject(request, response);
+        String[] rolesArray = (String[]) mappedValue;
+
+        if (rolesArray == null || rolesArray.length == 0) {
+            //no roles specified, so nothing to check - allow access.
+            return true;
+        }
+
+        Set&lt;String&gt; roles = CollectionUtils.asSet(rolesArray);
+        return subject.hasAllRoles(roles);
+    }
+</code></pre>
+
+<p>其中subject.hasAllRoles(roles)的意思是包含所有角色才可以，例如：超级管理员角色权限是高于管理员权限的，小明同学只有超级管理员角色，没有管理员角色；rolesArray(设置的角色访问)集合有两个：超级管理员和管员员，常理来说，管理员具备的权限超级管理员都有，那在这里验证的时候就会通不过；因为hasAllRoles判断的是小明同学是否具有超级管理员和管理员两个角色，只有其中一个是没有权限的；很显然这样是不合理的；自定义代码如下：</p>
+
+<pre><code class="language-java">package com.jeehome.micro.warehouse.config;
+
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.CollectionUtils;
+import org.apache.shiro.web.filter.authz.AuthorizationFilter;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import java.io.IOException;
+import java.util.Set;
+
+/**
+ * 自定义角色过滤器（filter）
+ */
+public class CustomRolesOrAuthorizationFilter extends AuthorizationFilter {
+
+
+
+   @SuppressWarnings({&quot;unchecked&quot;})
+    public boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) throws IOException {
+
+        Subject subject = getSubject(request, response);
+        //获取当前访问路径所需要的数组
+        //mappedValue，设置的角色数组
+        String[] rolesArray = (String[]) mappedValue;
+        //为空或者为null，即没有角色限制，可以直接访问
+        if (rolesArray == null || rolesArray.length == 0) {
+            //no roles specified, so nothing to check - allow access.
+            return true;
+        }
+        //获取限制的角色集合，数组转换为集合
+        Set&lt;String&gt; roles = CollectionUtils.asSet(rolesArray);
+       //当前subject是roles中的任意一个，则有权限进行访问
+        for (String role:roles){
+            if (subject.hasRole(role)){
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+</code></pre>
+
+<p>subject.hasRole判断的是rolesArray中有一个符合小明角色的就可以，这样写是合理的。</p>
+
+<h2 id="四-配置shirofilterfactorybean配置-过滤器">四、配置ShiroFilterFactoryBean配置，过滤器</h2>
+
+<ul>
+<li><p>配置流程和思路</p></li>
+
+<li><p>shiroFilterFactoryBean-》</p>
+
+<ul>
+<li>SecurityManager-》</li>
+<li>CustomSessionManager</li>
+<li>CustomRealm-》hashedCredentialsMatcher//密码配置</li>
+</ul></li>
+
+<li><p>SessionManager</p>
+
+<ul>
+<li>DefaultSessionManager： 默认实现，常用于javase</li>
+<li>ServletContainerSessionManager:  web环境</li>
+<li>DefaultWebSessionManager：常用于自定义实现</li>
+</ul></li>
+</ul>
+
+<p>注意坑一和坑二，代码有写注释</p>
+
+<ul>
+<li>自定义角色设置的代码段</li>
+</ul>
+
+<p>​        //设置自定义filter
+  ​        Map<String,Filter> filterMap=new LinkedHashMap&lt;&gt;();
+  ​        filterMap.put(&ldquo;roleOrFilter&rdquo;,new CustomRolesOrAuthorizationFilter());
+  ​        //工厂绑定自定义filter
+  ​        shiroFilterFactoryBean.setFilters(filterMap);</p>
+
+<pre><code class="language-java">package com.jeehome.micro.warehouse.config;
+
+
+import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.session.mgt.SessionManager;
+import org.apache.shiro.spring.LifecycleBeanPostProcessor;
+import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
+import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
+import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+
+import javax.servlet.Filter;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * 拦截过滤器
+ */
+@Configuration
+public class ShiroConfig {
+    @Bean
+    public ShiroFilterFactoryBean shiroFilter(SecurityManager securityManager) {
+        System.out.println(&quot;执行 ShiroFilterFactoryBean.shiroFilter()&quot;);
+        ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
+        //设置securityManager
+        shiroFilterFactoryBean.setSecurityManager(securityManager);
+        //需要登录的接口，如果访问某个接口，需要登录却没登录，则调用此接口(如果不是前后端分离，则跳转页面)
+        shiroFilterFactoryBean.setLoginUrl(&quot;/admin/needDologin&quot;);
+        //没有权限，未授权就会调用此方法， 先验证登录-》再验证是否有权限
+        shiroFilterFactoryBean.setUnauthorizedUrl(&quot;/admin/notPermit&quot;);
+
+        //设置自定义filter
+        Map&lt;String,Filter&gt; filterMap=new LinkedHashMap&lt;&gt;();
+        filterMap.put(&quot;roleOrFilter&quot;,new CustomRolesOrAuthorizationFilter());
+        //工厂绑定自定义filter
+        shiroFilterFactoryBean.setFilters(filterMap);
+
+        //设置Map，坑一：拦截器路径，一定要是用有序的LinkedHashMap，不可以使用hashMap,因为hashMap是无序的，拦截会出现时有时无的现象
+        Map&lt;String, String&gt; filterChainDefinitionMap = new LinkedHashMap&lt;&gt;();
+        //退出过滤器
+        filterChainDefinitionMap.put(&quot;/logout&quot;, &quot;logout&quot;);
+
+//        //匿名可以访问，也是就游客模式
+//        filterChainDefinitionMap.put(&quot;/**&quot;, &quot;anon&quot;);
+        //管理员角色才可以访问
+        filterChainDefinitionMap.put(&quot;/shelve/**&quot;, &quot;roleOrFilter[root]&quot;);
+//        //登录用户才可以访问
+        filterChainDefinitionMap.put(&quot;/stock/**&quot;, &quot;authc&quot;);
+        //游客可以访问登录接口
+        filterChainDefinitionMap.put(&quot;/admin/dologin&quot;, &quot;anon&quot;);
+        //游客可以访问注册接口
+        filterChainDefinitionMap.put(&quot;/admin/doRegist&quot;, &quot;anon&quot;);
+
+//        filterChainDefinitionMap.put(&quot;/role/searchPage&quot;, &quot;perms[role_list]&quot;);
+        filterChainDefinitionMap.put(&quot;/role/**&quot;,&quot;roleOrFilter[root,admin]&quot;);
+//
+//        //管理员角色才可以访问
+        filterChainDefinitionMap.put(&quot;/goods/**&quot;, &quot;roleOrFilter[root,admin]&quot;);
+
+        filterChainDefinitionMap.put(&quot;/permission/**&quot;,&quot;roleOrFilter[root,admin]&quot;);
+//
+//        //有编辑权限才可以访问
+        filterChainDefinitionMap.put(&quot;/device/searchPage&quot;, &quot;perms[设备分页查询]&quot;);
+
+        //放行Swagger2页面，需要放行这些
+        filterChainDefinitionMap.put(&quot;/swagger-ui.html&quot;, &quot;anon&quot;);
+        filterChainDefinitionMap.put(&quot;/swagger/**&quot;, &quot;anon&quot;);
+        filterChainDefinitionMap.put(&quot;/webjars/**&quot;, &quot;anon&quot;);
+        filterChainDefinitionMap.put(&quot;/swagger-resources/**&quot;, &quot;anon&quot;);
+        filterChainDefinitionMap.put(&quot;/v2/**&quot;, &quot;anon&quot;);
+        filterChainDefinitionMap.put(&quot;/static/**&quot;, &quot;anon&quot;);
+
+
+        //坑二： 过滤链是顺序执行，从上而下，一般将/** 放到最下面
+        //authc : url定义必须通过认证才可以访问
+        //anon  : url可以匿名访问
+        filterChainDefinitionMap.put(&quot;/**&quot;, &quot;authc&quot;);
+
+        shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
+        return shiroFilterFactoryBean;
+
+    }
+
+    //自定义Realm绑定securityManager，才能知道去哪里判断校验
+    //SecurityManager:安全会话管理器
+    @Bean
+    public SecurityManager securityManager() {
+//        DefaultSecurityManager securityManager = new DefaultSecurityManager();
+        DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
+        //安全管理器securityManager绑定sessionManager，如果不是前后端分离，则不必设置下面的sessionManager
+        securityManager.setSessionManager(sessionManager());
+        //安全管理器securityManager绑定realm，不可以直接newCustomRealm，否则会有问题,推荐放到最后，否则某些版本会不生效
+        securityManager.setRealm(customRealm());
+        return securityManager;
+    }
+
+    /**
+     * 自定义Realm
+     *
+     * @return
+     */
+    @Bean
+    public CustomRealm customRealm() {
+        CustomRealm customRealm = new CustomRealm();
+        //CutsomRealm绑定加密器（HashedCredentialsMatcher）
+        customRealm.setCredentialsMatcher(hashedCredentialsMatcher());
+        return customRealm;
+    }
+
+    /**
+     * 密码加解密规则(MD5)
+     *
+     * @return
+     */
+    @Bean
+    public HashedCredentialsMatcher hashedCredentialsMatcher() {
+        HashedCredentialsMatcher credentialsMatcher = new HashedCredentialsMatcher();
+
+        //设置算法：MD5
+        credentialsMatcher.setHashAlgorithmName(&quot;md5&quot;);
+        //散列2次
+        credentialsMatcher.setHashIterations(2);
+
+        return credentialsMatcher;
+    }
+
+    //自定义SessionManager
+    @Bean
+    public SessionManager sessionManager() {
+        CustomSessionManager customSessionMessage = new CustomSessionManager();
+        //设置Session的过期时间(过期时间默认为30分钟)，方法里面的单位是ms
+        customSessionMessage.setGlobalSessionTimeout(200000);
+        return customSessionMessage;
+    }
+
+}
+
+</code></pre>
+
+<h2 id="五-自定义sessionmanager">五、自定义SessionManager</h2>
+
+<pre><code class="language-java">package com.jeehome.micro.warehouse.config;
+
+
+
+import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
+import org.apache.shiro.web.util.WebUtils;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import java.io.Serializable;
+//自定义SessionManager
+public class CustomSessionManager extends DefaultWebSessionManager {
+
+    //定义Key的名称
+    private static final String AUTHORIZATION = &quot;token&quot;;
+
+    public CustomSessionManager() {
+        super();
+    }
+
+    @Override
+    protected Serializable getSessionId(ServletRequest request, ServletResponse response) {
+        //把ServletRequest转换成HttpServletRequest
+        String sessionId = WebUtils.toHttp(request).getHeader(AUTHORIZATION);
+        if (sessionId != null) {
+            //设置属性
+            request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_SOURCE,
+                    ShiroHttpServletRequest.COOKIE_SESSION_ID_SOURCE);
+            //服务端校验前端传递过来的sessionId是否存在，有效，过期
+            request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID, sessionId);
+
+            //automatically mark it valid here.  If it is invalid, the
+            //onUnknownSession method below will be invoked and we'll remove the attribute at that time.
+            //标记sessionId有效
+            request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_IS_VALID, Boolean.TRUE);
+            return sessionId;
+
+        } else {
+            return super.getSessionId(request, response);
+        }
+    }
+}
+
+</code></pre>
+
+  </section>
+  <footer>
+    
+    
+    
+    <section class="author-info row">
+      <div class="author-avatar col-md-2">
+        
+      </div>
+      <div class="author-meta col-md-6">
+        
+        
+      </div>
+      
+    </section>
+    <ul class="pager">
+      
+      <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Older</a></li>
+      
+      
+      <li class="next"><a href="https://ly19911114.github.io/post/springboot%E4%B8%8Eshiro%E7%9A%84%E5%85%B7%E4%BD%93%E9%A1%B9%E7%9B%AE/">Newer <span aria-hidden="true">&rarr;</span></a></li>
+      
+    </ul>
+  </footer>
+</article>
+
+  </main>
+  <footer class="container global-footer">
+    <div class="copyright-note pull-left">
+      
+    </div>
+    <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <script src="https://ly19911114.github.io/js/highlight.pack.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+  
+  
+</body>
+</html>
+

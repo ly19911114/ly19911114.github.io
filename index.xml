@@ -6,10 +6,30 @@
     <description>Recent content on Welcome to the mysterious world</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 30 Dec 2019 16:34:24 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 12 Feb 2020 20:42:30 +0800</lastBuildDate>
     
 	<atom:link href="https://ly19911114.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Shiro的复盘</title>
+      <link>https://ly19911114.github.io/post/shiro%E7%9A%84%E5%A4%8D%E7%9B%98/</link>
+      <pubDate>Wed, 12 Feb 2020 20:42:30 +0800</pubDate>
+      
+      <guid>https://ly19911114.github.io/post/shiro%E7%9A%84%E5%A4%8D%E7%9B%98/</guid>
+      <description>一、前言 智慧微仓项目用Shiro添加权限认证，目前已按照业务需求，完成，现在进行总结复盘，主要以代码为主，详细的教程在之前的文章有写，请转到文章&amp;rdquo;shiro权限与SpringBoot整合的知识点&amp;rdquo;。
+二、自定义Realm 配置这里不再赘述，注意包不要导错，自定义的Realm要继承Shiro的AuthorizingRealm；包括授权和登录验证
+package com.jeehome.micro.warehouse.config; import com.jeehome.micro.warehouse.entity.PermissionEntity; import com.jeehome.micro.warehouse.entity.RoleEntity; import com.jeehome.micro.warehouse.entity.UserEntity; import com.jeehome.micro.warehouse.service.UserService; import org.apache.shiro.authc.AuthenticationException; import org.apache.shiro.authc.AuthenticationInfo; import org.apache.shiro.authc.AuthenticationToken; import org.apache.shiro.authc.SimpleAuthenticationInfo; import org.apache.shiro.authz.AuthorizationInfo; import org.apache.shiro.authz.SimpleAuthorizationInfo; import org.apache.shiro.realm.AuthorizingRealm; import org.apache.shiro.subject.PrincipalCollection; import org.springframework.beans.factory.annotation.Autowired; import java.util.ArrayList; import java.util.List; /** * 自定义realm */ public class CustomRealm extends AuthorizingRealm { @Autowired private UserService userService; /** * 进行权限校验的时候调用 * * @param principals * @return */ @Override protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) { System.out.println(&amp;quot;授权 doGetAuthorizationInfo&amp;quot;); //获取用户名 String userName = (String) principals.</description>
+    </item>
+    
+    <item>
+      <title>Springboot与shiro的具体项目</title>
+      <link>https://ly19911114.github.io/post/springboot%E4%B8%8Eshiro%E7%9A%84%E5%85%B7%E4%BD%93%E9%A1%B9%E7%9B%AE/</link>
+      <pubDate>Mon, 06 Jan 2020 15:43:28 +0800</pubDate>
+      
+      <guid>https://ly19911114.github.io/post/springboot%E4%B8%8Eshiro%E7%9A%84%E5%85%B7%E4%BD%93%E9%A1%B9%E7%9B%AE/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>SVN分支创建和主干代码的合并问题</title>
@@ -79,10 +99,10 @@ public class RfidGoodsResponse { private String goodsName; private int goodsNum;
     
     <item>
       <title>Shiro权限与SpringBoot整合</title>
-      <link>https://ly19911114.github.io/post/shiro%E6%9D%83%E9%99%90%E4%B8%8Espringboot%E6%95%B4%E5%90%88/</link>
+      <link>https://ly19911114.github.io/post/shiro%E6%9D%83%E9%99%90%E4%B8%8Espringboot%E6%95%B4%E5%90%88%E7%9A%84%E7%9F%A5%E8%AF%86%E7%82%B9/</link>
       <pubDate>Mon, 23 Dec 2019 22:50:45 +0800</pubDate>
       
-      <guid>https://ly19911114.github.io/post/shiro%E6%9D%83%E9%99%90%E4%B8%8Espringboot%E6%95%B4%E5%90%88/</guid>
+      <guid>https://ly19911114.github.io/post/shiro%E6%9D%83%E9%99%90%E4%B8%8Espringboot%E6%95%B4%E5%90%88%E7%9A%84%E7%9F%A5%E8%AF%86%E7%82%B9/</guid>
       <description>title: &amp;ldquo;shiro权限框架与SpringBoot的整合&amp;rdquo; date: 2019-12-22T16:28:13+08:00 draft: true
 近期在学习shiro的权限框架，整理资料如下：包括基本概念，单元测试，SpringBoot整合shiro框架的实操，最后是上线项目的整合
 第1章 Shiro权限实战课程介绍 第1集 Shiro权限实战课程介绍 简介：讲解为什么要学这门课，Shiro权限框架的课程大纲和学后水平

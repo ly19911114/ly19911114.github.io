@@ -63,6 +63,58 @@
   
   <article>
   <header>
+    <h2><a href="https://ly19911114.github.io/post/shiro%E7%9A%84%E5%A4%8D%E7%9B%98/">Shiro的复盘</a></h2>
+    <div class="post-meta clearfix">
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-02-12T20:42:30&#43;08:00">
+          Feb 12, 2020
+        </time>
+      </div>
+    </div>
+  </header>
+  <div>
+    一、前言 智慧微仓项目用Shiro添加权限认证，目前已按照业务需求，完成，现在进行总结复盘，主要以代码为主，详细的教程在之前的文章有写，请转到文章&rdquo;shiro权限与SpringBoot整合的知识点&rdquo;。
+二、自定义Realm 配置这里不再赘述，注意包不要导错，自定义的Realm要继承Shiro的AuthorizingRealm；包括授权和登录验证
+package com.jeehome.micro.warehouse.config; import com.jeehome.micro.warehouse.entity.PermissionEntity; import com.jeehome.micro.warehouse.entity.RoleEntity; import com.jeehome.micro.warehouse.entity.UserEntity; import com.jeehome.micro.warehouse.service.UserService; import org.apache.shiro.authc.AuthenticationException; import org.apache.shiro.authc.AuthenticationInfo; import org.apache.shiro.authc.AuthenticationToken; import org.apache.shiro.authc.SimpleAuthenticationInfo; import org.apache.shiro.authz.AuthorizationInfo; import org.apache.shiro.authz.SimpleAuthorizationInfo; import org.apache.shiro.realm.AuthorizingRealm; import org.apache.shiro.subject.PrincipalCollection; import org.springframework.beans.factory.annotation.Autowired; import java.util.ArrayList; import java.util.List; /** * 自定义realm */ public class CustomRealm extends AuthorizingRealm { @Autowired private UserService userService; /** * 进行权限校验的时候调用 * * @param principals * @return */ @Override protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) { System.out.println(&quot;授权 doGetAuthorizationInfo&quot;); //获取用户名 String userName = (String) principals.
+  </div>
+  
+  <footer>
+    <ul class="pager">
+      <li class="next"><a href="https://ly19911114.github.io/post/shiro%E7%9A%84%E5%A4%8D%E7%9B%98/">Read more <span aria-hidden="true">&raquo;</span></a></li>
+    </ul>
+  </footer>
+  
+</article>
+
+  
+  
+  <hr/>
+  
+  <article>
+  <header>
+    <h2><a href="https://ly19911114.github.io/post/springboot%E4%B8%8Eshiro%E7%9A%84%E5%85%B7%E4%BD%93%E9%A1%B9%E7%9B%AE/">Springboot与shiro的具体项目</a></h2>
+    <div class="post-meta clearfix">
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-01-06T15:43:28&#43;08:00">
+          Jan 6, 2020
+        </time>
+      </div>
+    </div>
+  </header>
+  <div>
+    
+  </div>
+  
+</article>
+
+  
+  
+  <hr/>
+  
+  <article>
+  <header>
     <h2><a href="https://ly19911114.github.io/post/svn%E5%88%86%E6%94%AF%E5%88%9B%E5%BB%BA%E5%92%8C%E4%B8%BB%E5%B9%B2%E4%BB%A3%E7%A0%81%E7%9A%84%E5%90%88%E5%B9%B6%E9%97%AE%E9%A2%98/">SVN分支创建和主干代码的合并问题</a></h2>
     <div class="post-meta clearfix">
       <div class="post-date pull-left">
@@ -174,7 +226,7 @@ public class RfidGoodsResponse { private String goodsName; private int goodsNum;
   
   <article>
   <header>
-    <h2><a href="https://ly19911114.github.io/post/shiro%E6%9D%83%E9%99%90%E4%B8%8Espringboot%E6%95%B4%E5%90%88/">Shiro权限与SpringBoot整合</a></h2>
+    <h2><a href="https://ly19911114.github.io/post/shiro%E6%9D%83%E9%99%90%E4%B8%8Espringboot%E6%95%B4%E5%90%88%E7%9A%84%E7%9F%A5%E8%AF%86%E7%82%B9/">Shiro权限与SpringBoot整合</a></h2>
     <div class="post-meta clearfix">
       <div class="post-date pull-left">
         Posted on
@@ -198,7 +250,7 @@ public void doFilter(ServletRequest request, ServletResponse response, FilterCha
   
   <footer>
     <ul class="pager">
-      <li class="next"><a href="https://ly19911114.github.io/post/shiro%E6%9D%83%E9%99%90%E4%B8%8Espringboot%E6%95%B4%E5%90%88/">Read more <span aria-hidden="true">&raquo;</span></a></li>
+      <li class="next"><a href="https://ly19911114.github.io/post/shiro%E6%9D%83%E9%99%90%E4%B8%8Espringboot%E6%95%B4%E5%90%88%E7%9A%84%E7%9F%A5%E8%AF%86%E7%82%B9/">Read more <span aria-hidden="true">&raquo;</span></a></li>
     </ul>
   </footer>
   
