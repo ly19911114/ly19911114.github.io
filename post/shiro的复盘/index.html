@@ -473,6 +473,58 @@ public class CustomSessionManager extends DefaultWebSessionManager {
 
 </code></pre>
 
+<h2 id="六-注册">六、注册</h2>
+
+<ul>
+<li><p>用Shiro自带的加密器，new SimpleHash();</p>
+
+<pre><code class="language-java">@ApiOperation(&quot;doregist注册&quot;)
+@RequestMapping(value = &quot;doRegist&quot;, method = RequestMethod.POST)
+@ResponseBody
+public ApiResult doRegister(@RequestBody AdminRequest request) {
+    String pwd = request.getPassword();
+    //Shiro自带的MD5进行加密
+    Object pwdResult = new SimpleHash(&quot;md5&quot;, pwd, null, 2);
+    String pwdResult1 = pwdResult.toString();
+    request.setPassword(pwdResult1);
+    UserEntity userEntity = request.mapToEntity();
+    int resultNum = userService.insertUser(userEntity);
+    int userId = userEntity.getId();
+    if (resultNum &gt; 0) {
+        String uuid = UUIDUtils.getUUID();
+        userManagementService.add(uuid, userId);
+        return ApiResult.Success(&quot;注册成功&quot;);
+    } else {
+        return ApiResult.Failed(&quot;注册失败&quot;);
+    }
+}
+</code></pre></li>
+</ul>
+
+<h2 id="七-登录">七、登录</h2>
+
+<pre><code class="language-java">@ApiOperation(value = &quot;登录&quot;)
+    @RequestMapping(value = &quot;dologin&quot;, method = RequestMethod.POST)
+    public ApiResult doLogin(@RequestBody AdminLoginRequest adminLoginRequest, HttpServletRequest request) {
+        //拿到操作主体
+        Subject subject = SecurityUtils.getSubject();
+
+        Map&lt;String, Object&gt; info = new HashMap&lt;&gt;();
+        try {
+            //把传递的用户名，密码封装成UsernamePasswordToken
+            UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(adminLoginRequest.getName(), adminLoginRequest.getPassword());
+            subject.login(usernamePasswordToken);
+            //获取SessionId，放入Map中
+            info.put(&quot;sessionId&quot;, subject.getSession().getId());
+            return ApiResult.Success(info, &quot;登陆成功&quot;);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ApiResult.Failed(&quot;登录失败&quot;);
+        }
+
+    }
+</code></pre>
+
   </section>
   <footer>
     
