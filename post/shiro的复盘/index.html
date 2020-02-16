@@ -525,6 +525,87 @@ public ApiResult doRegister(@RequestBody AdminRequest request) {
     }
 </code></pre>
 
+<h2 id="八-shiro框架把用户对象存储到session中以及脱离shiro框架如何存储到session的问题">八、Shiro框架把用户对象存储到Session中以及脱离Shiro框架如何存储到Session的问题</h2>
+
+<p>获取用户对象有三种方法：</p>
+
+<ul>
+<li>根据传入的参数，最直接的，查询数据库</li>
+<li>把查询到的对象存储到Redis中，其他接口调用，随即可以取出</li>
+<li>把查询到的对象存储到Session中</li>
+</ul>
+
+<p>1、下面代码中Shiro框架的用户登录认证中，获取根据用户名获取完用户对象后，把用户对象存储到Session中，</p>
+
+<ul>
+<li><p>代码：设置一个类里面设置Key的值（也就是常量）：</p>
+
+<pre><code class="language-java">package com.jeehome.micro.warehouse.constant;
+
+/**
+* 系统常量
+*/
+public class Constant {
+public static final String USER_SESSION = &quot;user&quot;;
+}
+
+</code></pre></li>
+
+<li><p>在重写Shiro认证登录的程序里把User对象设置到Session中，具体代码为：SecurityUtils.getSubject().getSession().setAttribute(Constant.USER_SESSION, userEntity);</p>
+
+<pre><code class="language-java">@Override
+protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+    System.out.println(&quot;认证 doGetAuthenticationInfo&quot;);
+    //从token获取用户信息,token代表用户输入的信息
+    String userName = (String) token.getPrincipal();
+    UserEntity userEntity = userService.findAllUserInfoByUsername(userName);
+    String pwd = userEntity.getPassword();
+    if (pwd == null || &quot;&quot;.equals(pwd)) {
+        return null;
+    }
+    //把获取到的User实体类对象(UserEntity)以键值对的形式存储到Session中
+    SecurityUtils.getSubject().getSession().setAttribute(Constant.USER_SESSION, userEntity);
+    //返回一个封装了用户信息的AuthenticationInfo实例
+    return new SimpleAuthenticationInfo(userName, pwd, this.getClass().getName());
+}
+</code></pre></li>
+</ul>
+
+<p>2、如果不是Shiro框架，把对象插入到Session中,其中request1的类型是HttpServletRequest</p>
+
+<pre><code class="language-java">request.getSession().setAttribute(Constant.USER_SESSION, userEntity);
+</code></pre>
+
+<p>3、获取Session中User对象的三种方法</p>
+
+<ul>
+<li>通过Shiro框架中的方法获取：SecurityUtils.getSubject().getSession().getAttribute(Constant.USER_SESSION);</li>
+<li>通过传递的HttpServletRequest方法获取：request1.getSession().getAttribute(Constant.USER_SESSION);</li>
+
+<li><p>通过写注解@SessionAttribute方法获取：@SessionAttribute(Constant.USER_SESSION)UserEntity user</p>
+
+<pre><code class="language-java">@ApiOperation(&quot;分页查询角色列表&quot;)
+@RequestMapping(value = &quot;searchPage&quot;, method = RequestMethod.POST)
+public ApiResult roleList(@RequestBody RoleSearchRequest request, HttpServletRequest request1, @SessionAttribute(Constant.USER_SESSION)UserEntity user) {
+PageHelper.startPage(request.getPageNum(), request.getPageSize());
+
+Object session=SecurityUtils.getSubject().getSession();
+// 方法1
+Object user1 = SecurityUtils.getSubject().getSession().getAttribute(Constant.USER_SESSION);
+// 方法2
+Object user2 = request1.getSession().getAttribute(Constant.USER_SESSION);
+
+    
+// 方法3 @SessionAttribute(&quot;user&quot;)
+
+List&lt;RoleEntity&gt; list = roleService.findRoleByRoleDescription(request.getSearchText(), request.getRoleId());
+PageInfo&lt;RoleEntity&gt; pageInfo = new PageInfo&lt;&gt;(list);
+PageResponse1&lt;RoleResponse&gt; result = PageAnnotationProvider.mapper(pageInfo, RoleResponse.class);
+return ApiResult.Success(result, &quot;分页获取成功&quot;);
+}
+</code></pre></li>
+</ul>
+
   </section>
   <footer>
     
