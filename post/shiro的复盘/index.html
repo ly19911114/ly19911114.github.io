@@ -527,7 +527,7 @@ public ApiResult doRegister(@RequestBody AdminRequest request) {
 
 <h2 id="八-shiro框架把用户对象存储到session中以及脱离shiro框架如何存储到session的问题">八、Shiro框架把用户对象存储到Session中以及脱离Shiro框架如何存储到Session的问题</h2>
 
-<p>获取用户对象有三种方法：</p>
+<h3 id="获取用户对象有三种方法">获取用户对象有三种方法：</h3>
 
 <ul>
 <li>根据传入的参数，最直接的，查询数据库</li>
@@ -535,7 +535,7 @@ public ApiResult doRegister(@RequestBody AdminRequest request) {
 <li>把查询到的对象存储到Session中</li>
 </ul>
 
-<p>1、下面代码中Shiro框架的用户登录认证中，获取根据用户名获取完用户对象后，把用户对象存储到Session中，</p>
+<h3 id="1-下面代码中shiro框架的用户登录认证中-获取根据用户名获取完用户对象后-把用户对象存储到session中">1、下面代码中Shiro框架的用户登录认证中，获取根据用户名获取完用户对象后，把用户对象存储到Session中，</h3>
 
 <ul>
 <li><p>代码：设置一个类里面设置Key的值（也就是常量）：</p>
@@ -571,18 +571,18 @@ protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) 
 </code></pre></li>
 </ul>
 
-<p>2、如果不是Shiro框架，把对象插入到Session中,其中request1的类型是HttpServletRequest</p>
+<h3 id="2-如果不是shiro框架-把对象插入到session中-其中request1的类型是httpservletrequest">2、如果不是Shiro框架，把对象插入到Session中,其中request1的类型是HttpServletRequest</h3>
 
 <pre><code class="language-java">request.getSession().setAttribute(Constant.USER_SESSION, userEntity);
 </code></pre>
 
-<p>3、获取Session中User对象的三种方法</p>
+<h3 id="3-获取session中user对象的三种方法">3、获取Session中User对象的三种方法</h3>
 
 <ul>
 <li>通过Shiro框架中的方法获取：SecurityUtils.getSubject().getSession().getAttribute(Constant.USER_SESSION);</li>
 <li>通过传递的HttpServletRequest方法获取：request1.getSession().getAttribute(Constant.USER_SESSION);</li>
 
-<li><p>通过写注解@SessionAttribute方法获取：@SessionAttribute(Constant.USER_SESSION)UserEntity user</p>
+<li><p>通过写注解@SessionAttribute参数的形式来访问预先存在的全局会话属性：@SessionAttribute(Constant.USER_SESSION)UserEntity user</p>
 
 <pre><code class="language-java">@ApiOperation(&quot;分页查询角色列表&quot;)
 @RequestMapping(value = &quot;searchPage&quot;, method = RequestMethod.POST)
@@ -623,7 +623,7 @@ return ApiResult.Success(result, &quot;分页获取成功&quot;);
     </section>
     <ul class="pager">
       
-      <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Older</a></li>
+      <li class="previous"><a href="https://ly19911114.github.io/post/%E5%BE%AE%E6%9C%8D%E5%8A%A1springcloud%E5%92%8Cdocker%E7%9F%A5%E8%AF%86%E7%82%B9%E8%AF%A6%E8%A7%A3/"><span aria-hidden="true">&larr;</span> Older</a></li>
       
       
       <li class="next"><a href="https://ly19911114.github.io/post/springboot%E4%B8%8Eshiro%E7%9A%84%E5%85%B7%E4%BD%93%E9%A1%B9%E7%9B%AE/">Newer <span aria-hidden="true">&rarr;</span></a></li>
