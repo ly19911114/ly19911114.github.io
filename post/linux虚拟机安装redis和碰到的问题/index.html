@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta property="og:title" content=" Linux虚拟机安装Redis和碰到的问题 &middot;  Welcome to the mysterious world" />
+  
+  <meta property="og:site_name" content="Welcome to the mysterious world" />
+  <meta property="og:url" content="https://ly19911114.github.io/post/linux%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85redis%E5%92%8C%E7%A2%B0%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" />
+  
+  
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:article:published_time" content="2020-02-20T01:09:32&#43;08:00" />
+  
+  
+
+  <title>
+     Linux虚拟机安装Redis和碰到的问题 &middot;  Welcome to the mysterious world
+  </title>
+
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/main.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/github.css" />
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400" type="text/css">
+  <link rel="shortcut icon" href="https://ly19911114.github.io/images/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://ly19911114.github.io/images/apple-touch-icon.png" />
+  
+</head>
+<body>
+    <header class="global-header"  style="background-image:url( /images/bg.jpg )">
+    <section class="header-text">
+      <h1><a href="https://ly19911114.github.io/">Welcome to the mysterious world</a></h1>
+      
+      <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+      
+      <a href="https://ly19911114.github.io/" class="btn-header btn-back hidden-xs">
+        <i class="fa fa-angle-left" aria-hidden="true"></i>
+        &nbsp;Home
+      </a>
+      
+      
+    </section>
+  </header>
+  <main class="container">
+
+
+<article>
+  <header>
+    <h1 class="text-primary">Linux虚拟机安装Redis和碰到的问题</h1>
+    <div class="post-meta clearfix">
+    
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-02-20T01:09:32&#43;08:00">
+          Feb 20, 2020
+        </time>
+      </div>
+    
+      <div class="pull-right">
+        
+      </div>
+    </div>
+  </header>
+  <section>
+    <p>1、解决could not retrieve mirrorlist，</p>
+
+<pre><code>          1.sudo 
+          2.sudo su用sudo命令进入管理员账号
+          vim /etc/sysconfig/network-scripts/ifcfg-ens33 (不一定是ens33，要看清楚自己的文件名字)
+</code></pre>
+
+<p>　　           3.将ONBOOT改为yes，wq!保存退出</p>
+
+<pre><code>          4.重新启动网络  $ service network restart
+</code></pre>
+
+<p>​<br />
+         2、 安装wget yum install wget</p>
+
+<p>​<br />
+         3、 下载redis安装包</p>
+
+<pre><code>         wget http://download.redis.io/releases/redis-4.0.6.tar.gz
+</code></pre>
+
+<p>​<br />
+         4、 解压压缩包</p>
+
+<pre><code>         tar zxvf redis-4.0.6.tar.gz
+</code></pre>
+
+<p>​<br />
+         5、yum install gcc</p>
+
+<p>​<br />
+         6、跳转到redis解压目录下 cd redis-4.0.6</p>
+
+<p>​<br />
+         7、编译安装 make MALLOC=libc　　</p>
+
+<pre><code>     8、cd src &amp;&amp; make install
+
+     9、测试是否安装成功 
+
+          ./redis-server
+</code></pre>
+
+  </section>
+  <footer>
+    
+    
+    
+    <section class="author-info row">
+      <div class="author-avatar col-md-2">
+        
+      </div>
+      <div class="author-meta col-md-6">
+        
+        
+      </div>
+      
+    </section>
+    <ul class="pager">
+      
+      <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Older</a></li>
+      
+      
+      <li class="next"><a href="https://ly19911114.github.io/post/%E5%BE%AE%E6%9C%8D%E5%8A%A1springcloud%E5%92%8Cdocker%E7%9F%A5%E8%AF%86%E7%82%B9%E8%AF%A6%E8%A7%A3/">Newer <span aria-hidden="true">&rarr;</span></a></li>
+      
+    </ul>
+  </footer>
+</article>
+
+  </main>
+  <footer class="container global-footer">
+    <div class="copyright-note pull-left">
+      
+    </div>
+    <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <script src="https://ly19911114.github.io/js/highlight.pack.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+  
+  
+</body>
+</html>
+
