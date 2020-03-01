@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta property="og:title" content=" SpringCloud的学习总结 &middot;  Welcome to the mysterious world" />
+  
+  <meta property="og:site_name" content="Welcome to the mysterious world" />
+  <meta property="og:url" content="https://ly19911114.github.io/post/springcloud%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/" />
+  
+  
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:article:published_time" content="2020-03-01T15:44:42&#43;08:00" />
+  
+  
+
+  <title>
+     SpringCloud的学习总结 &middot;  Welcome to the mysterious world
+  </title>
+
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/main.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/github.css" />
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400" type="text/css">
+  <link rel="shortcut icon" href="https://ly19911114.github.io/images/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://ly19911114.github.io/images/apple-touch-icon.png" />
+  
+</head>
+<body>
+    <header class="global-header"  style="background-image:url( /images/bg.jpg )">
+    <section class="header-text">
+      <h1><a href="https://ly19911114.github.io/">Welcome to the mysterious world</a></h1>
+      
+      <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+      
+      <a href="https://ly19911114.github.io/" class="btn-header btn-back hidden-xs">
+        <i class="fa fa-angle-left" aria-hidden="true"></i>
+        &nbsp;Home
+      </a>
+      
+      
+    </section>
+  </header>
+  <main class="container">
+
+
+<article>
+  <header>
+    <h1 class="text-primary">SpringCloud的学习总结</h1>
+    <div class="post-meta clearfix">
+    
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-03-01T15:44:42&#43;08:00">
+          Mar 1, 2020
+        </time>
+      </div>
+    
+      <div class="pull-right">
+        
+      </div>
+    </div>
+  </header>
+  <section>
+    
+
+<h1 id="一-cap的理论">一、CAP的理论</h1>
+
+<p>CAP定理：
+            指的是在一个分布式系统中，Consistency（一致性）、 Availability（可用性）、Partition tolerance（分区容错性），三者不可同时获得。</p>
+
+<pre><code>    一致性（C）：在分布式系统中的所有数据备份，在同一时刻是否同样的值。（所有节点在同一时间的数据完全一致，越多节点，数据同步越耗时）
+</code></pre>
+
+<p>​<br />
+        可用性（A）：负载过大后，集群整体是否还能响应客户端的读写请求。（服务一直可用，而且是正常响应时间）</p>
+
+<pre><code>    分区容错性（P）：分区容忍性，就是高可用性，一个节点崩了，并不影响其它的节点（100个节点，挂了几个，不影响服务，越多机器越好）
+
+
+    CAP理论就是说在分布式存储系统中，最多只能实现上面的两点。而由于当前的网络硬件肯定会出现延迟丢包等问题，所以分区容忍性是我们必须需要实现的。所以我们只能在一致性和可用性之间进行权衡
+</code></pre>
+
+<h1 id="二-利用ribbiton在各个服务之间进行调用">二、利用ribbiton在各个服务之间进行调用</h1>
+
+<p>例子：订单信息调用商品信息，代码如下</p>
+
+<ul>
+<li><p>首先在订单服务的启动类里面加入注解和ResTemplate</p>
+
+<pre><code class="language-java">@Bean
+@LoadBalanced
+public RestTemplate restTemplate() {
+  return new RestTemplate();
+}
+</code></pre></li>
+
+<li><p>订单服务调用商品服务的接口，采用HTTP协议</p></li>
+</ul>
+
+<p>Map<String,Object> productMap = restTemplate.getForObject(&ldquo;<a href="http://product-service/api/v1/product/find?id=&quot;+productId">http://product-service/api/v1/product/find?id=&quot;+productId</a>, Map.class)&mdash;》获取到商品服务的信息</p>
+
+<pre><code>  package net.xdclass.order_service.service.impl;
+  
+  import net.xdclass.order_service.domain.ProductOrder;
+  import net.xdclass.order_service.service.ProductOrderService;
+  import org.springframework.beans.factory.annotation.Autowired;
+  import org.springframework.cloud.client.ServiceInstance;
+  import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+  import org.springframework.stereotype.Service;
+  import org.springframework.web.client.RestTemplate;
+  import sun.net.www.URLConnection;
+  import sun.net.www.http.HttpClient;
+  
+  import java.util.Date;
+  import java.util.Map;
+  import java.util.UUID;
+  
+  @Service
+  public class ProductOrderServiceImpl implements ProductOrderService {
+  
+  
+      @Autowired
+      private RestTemplate restTemplate;
+      
+      @Override
+      public ProductOrder save(int userId, int productId) {
+  
+          Map&lt;String,Object&gt; productMap = restTemplate.getForObject(&quot;http://product-service/api/v1/product/find?id=&quot;+productId, Map.class);
+  
+          ProductOrder productOrder = new ProductOrder();
+          productOrder.setCreateTime(new Date());
+          productOrder.setUserId(userId);
+          productOrder.setTradeNo(UUID.randomUUID().toString());
+          productOrder.setProductName(productMap.get(&quot;name&quot;).toString());
+          productOrder.setPrice(Integer.parseInt(productMap.get(&quot;price&quot;).toString()));
+          return productOrder;
+      }
+  }
+</code></pre>
+
+<ul>
+<li>扩展：什么是RestTemplate？</li>
+</ul>
+
+<p>​               传统情况下在java代码里访问restful服务，一般使用<code>Apache</code>的<code>HttpClient</code>。不过此种方法使用起来太过繁琐。spring提供了一种简单便捷的模板类来进行操作，这就是<code>RestTemplate</code>。</p>
+
+<p>​</p>
+
+<pre><code>getForObject()函数
+            解析：它可以理解为getForEntity的进一步封装，它通过HttpMessageConverterExtractor对HTTP请求响应体body内容进行
+                  对象转换，实现请求直接返回包装好的对象内容
+            例如：
+                RestTemplate restTemplate = new RestTemplate();
+                String result = restTemplate.getForObject(uri, String.class);
+                
+                当body是一个User对象的时候，可以直接这样实现
+                RestTemplate restsTemplate = new RestTempalte();
+                User user = restTemplate.getForObject(uri, User.class);
+            使用场景：当不需要关注请求响应除body外的其他内容时，该函数就非常好用，可以少一个从Response中获取body的步骤。
+</code></pre>
+
+<h1 id="三-使用feign在各个服务之间进行调用">三、使用Feign在各个服务之间进行调用</h1>
+
+<ul>
+<li>## 1、使用feign步骤讲解（新旧版本依赖名称不一样）加入依赖</li>
+</ul>
+
+<p>​<br />
+  ​</p>
+
+<pre><code class="language-java">                  &lt;dependency&gt;
+  			        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+  			        &lt;artifactId&gt;spring-cloud-starter-openfeign&lt;/artifactId&gt;
+  			    &lt;/dependency&gt;	
+</code></pre>
+
+<p>启动类增加@EnableFeignClients<br />
+            增加一个接口 并@FeignClient(name=&ldquo;product-service&rdquo;)</p>
+
+<pre><code class="language-java">  package com.ly.order_service.service;
+  
+  import com.ly.order_service.fallback.ProductClientFallback;
+  import org.springframework.cloud.openfeign.FeignClient;
+  import org.springframework.stereotype.Component;
+  import org.springframework.web.bind.annotation.GetMapping;
+  import org.springframework.web.bind.annotation.RequestParam;
+  @Component
+  @FeignClient(name = &quot;product-service&quot;, fallback = ProductClientFallback.class)
+  public interface ProductClicent {
+  
+  
+      @GetMapping(&quot;/api/v1/product/find&quot;)
+      String findById(@RequestParam(&quot;id&quot;) int id);
+  }
+</code></pre>
+
+<ul>
+<li><h2 id="调用商品客户端">调用商品客户端</h2>
+
+<pre><code class="language-java">package com.ly.order_service.service.lmpl;
+  
+import com.fasterxml.jackson.databind.JsonNode;
+import com.ly.order_service.domain.ProductOrder;
+import com.ly.order_service.service.ProductClicent;
+import com.ly.order_service.service.ProductOrderService;
+import com.ly.order_service.utils.JsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+  
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
+  
+@Service
+public class ProductOrderServicelmpl implements ProductOrderService {
+//    @Autowired
+//    private RestTemplate restTemplate;
+  
+//    @Autowired
+//    private LoadBalancerClient loadBalancerClient;
+  
+  @Autowired
+  private ProductClicent productClicent;
+  
+  //解决SpringCloud的链路追踪组件Sleuth，不打印日志的问题
+  private final Logger logger= LoggerFactory.getLogger(getClass());
+  
+  @Override
+  public ProductOrder save(int userId, int productId) {
+//        Map&lt;String, Object&gt; map = restTemplate.getForObject(&quot;http://product-service/api/v1/product/find?id=&quot; + productId, (Map.class));
+//        System.out.println(map);
+  
+  
+      logger.info(&quot;service save order&quot;);
+      String response = productClicent.findById(productId);
+      JsonNode jsonNode = JsonUtils.strToJsonNode(response);
+  
+      ProductOrder productOrder = new ProductOrder();
+      productOrder.setCreateTime(new Date());
+      productOrder.setUserId(userId);
+      productOrder.setTradeNo(UUID.randomUUID().toString());
+      productOrder.setProductName(jsonNode.get(&quot;name&quot;).toString());
+      productOrder.setPrice(Integer.parseInt(jsonNode.get(&quot;price&quot;).toString()));
+  
+  
+      return productOrder;
+  }
+  
+}
+</code></pre></li>
+</ul>
+
+<p>注意点：在ProductClicent客户端程序中，使用的是String findById(@RequestParam(&ldquo;id&rdquo;) int id)，接收的是一段字符串，那如果是接收的一个实体类的对象也是可以这么写的，只需要把字符串转换为JSONNODE即可，这样在维护上会轻松很多。JSON工具类代码如下所示：</p>
+
+<pre><code class="language-java">package com.ly.order_service.utils;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+/**
+ * json工具类
+ */
+public class JsonUtils {
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+
+    public static JsonNode strToJsonNode(String str) {
+        try {
+            return objectMapper.readTree(str);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
+    }
+}
+</code></pre>
+
+<h2 id="总结-ribbon和feign两个的区别和选择">总结：ribbon和feign两个的区别和选择</h2>
+
+<p>​           选择feign
+​               默认集成了ribbon
+​               写起来更加思路清晰和方便
+​               采用注解方式进行配置，配置熔断等方式方便</p>
+
+<h1 id="四-分布式核心知识之熔断-降级hystrix讲解">四、分布式核心知识之熔断、降级Hystrix讲解</h1>
+
+<h2 id="简介-系统负载过高-突发流量或者网络等各种异常情况介绍-常用的解决方案">简介：系统负载过高，突发流量或者网络等各种异常情况介绍，常用的解决方案</h2>
+
+<pre><code>1、熔断：
+    保险丝，熔断服务，为了防止整个系统故障，包含子和下游服务
+
+    下单服务 -》商品服务
+            -》用户服务 （出现异常-》熔断）
+
+2、降级：
+    抛弃一些非核心的接口和数据
+
+    旅行箱的例子：只带核心的物品，抛弃非核心的，等有条件的时候再去携带这些物品
+</code></pre>
+
+<p>​<br />
+    3、熔断和降级互相交集
+        相同点：
+            1）从可用性和可靠性触发，为了防止系统崩溃
+            2）最终让用户体验到的是某些功能暂时不能用</p>
+
+<pre><code>    不同点
+        1）服务熔断一般是下游服务故障导致的，而服务降级一般是从整体系统负荷考虑，由调用方控制
+</code></pre>
+
+<h2 id="为什么要用">为什么要用？</h2>
+
+<p>​       在一个分布式系统里，一个服务依赖多个服务，可能存在某个服务调用失败，
+​       比如超时、异常等，如何能够保证在一个依赖出问题的情况下，不会导致整体服务失败，
+​       通过Hystrix就可以解决</p>
+
+<p>Hystrix提供了熔断、隔离、Fallback、cache、监控等丰富功能</p>
+
+<h2 id="hystrix整合springboot代码">Hystrix整合SpringBoot代码</h2>
+
+<h3 id="1-加入依赖">1.加入依赖</h3>
+
+<pre><code class="language-java">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+
+<h3 id="2-增加注解">2.增加注解</h3>
+
+<p>​       订单启动类里面增加注解
+​       @EnableCircuitBreaker</p>
+
+<pre><code class="language-java">package com.ly.order_service;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.client.RestTemplate;
+
+@SpringBootApplication
+//使得带有@FeignClient注解的得以标识扫描
+@EnableFeignClients
+//熔断器hystrix
+@EnableCircuitBreaker
+//仪表盘注解
+@EnableHystrixDashboard
+public class OrderServiceApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(OrderServiceApplication.class, args);
+    }
+
+
+    @Bean
+    @LoadBalanced
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+}
+</code></pre>
+
+<h3 id="3-最外层api使用熔断降级-好比异常处理-网络异常-参数或者内部调用问题">3.最外层api使用熔断降级，好比异常处理（网络异常，参数或者内部调用问题）</h3>
+
+<p>​           api方法上增加 @HystrixCommand(fallbackMethod = &ldquo;saveOrderFail&rdquo;)
+​           编写fallback方法实现，方法签名一定要和api方法签名一致（注意点！！！）</p>
+
+<pre><code class="language-java">@RequestMapping(&quot;save&quot;)
+@HystrixCommand(fallbackMethod = &quot;saveOrderFail&quot;)
+public Object save(@RequestParam(&quot;user_id&quot;) int userId, @RequestParam(&quot;product_id&quot;) int productId, HttpServletRequest request) {
+
+    //获取请求头的时候，网关zuul会默认过滤掉一些请求头，要在zuul的配置文件中修改
+    String token=request.getHeader(&quot;token&quot;);
+    String cookie=request.getHeader(&quot;cookie&quot;);
+
+    System.out.println(&quot;token=&quot;+token);
+    System.out.println(&quot;cookie=&quot;+cookie);
+    Map&lt;String, Object&gt; data = new HashMap&lt;&gt;();
+    data.put(&quot;code&quot;, 0);
+    data.put(&quot;data&quot;, productOrderService.save(userId, productId));
+    return data;
+}
+</code></pre>
+
+<h3 id="4-编写异常处理的方法">4.编写异常处理的方法</h3>
+
+<p>当接口调用出错的时候，转到此异常处理方法中</p>
+
+<pre><code class="language-java">package com.ly.order_service.controller;
+
+import com.ly.order_service.service.ProductOrderService;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.util.StreamUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+@RestController
+@RequestMapping(&quot;/api/v1/order&quot;)
+public class OrderController {
+    @Autowired
+    private ProductOrderService productOrderService;
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @RequestMapping(&quot;save&quot;)
+    @HystrixCommand(fallbackMethod = &quot;saveOrderFail&quot;)
+    public Object save(@RequestParam(&quot;user_id&quot;) int userId, @RequestParam(&quot;product_id&quot;) int productId, HttpServletRequest request) {
+
+        //获取请求头的时候，网关zuul会默认过滤掉一些请求头，要在zuul的配置文件中修改
+        String token=request.getHeader(&quot;token&quot;);
+        String cookie=request.getHeader(&quot;cookie&quot;);
+
+        System.out.println(&quot;token=&quot;+token);
+        System.out.println(&quot;cookie=&quot;+cookie);
+        Map&lt;String, Object&gt; data = new HashMap&lt;&gt;();
+        data.put(&quot;code&quot;, 0);
+        data.put(&quot;data&quot;, productOrderService.save(userId, productId));
+        return data;
+    }
+
+    //最外部API降级，方法签名（参数）一定要和api方法签名一致（注意点！！！）
+    private Object saveOrderFail(int userId, int productId, HttpServletRequest request) {
+
+        //获取IP地址，就知道哪个服务器节点有问题
+        final String ip = request.getRemoteAddr();
+        //监控报警机制
+        String sendOrderKey = &quot;save-order&quot;;
+        //key_value形式，所以用opsForValue
+        String sendValue = redisTemplate.opsForValue().get(sendOrderKey);
+
+        //因为是同步执行，短信发送要开启线程异步执行
+        new Thread(() -&gt; {
+            //判断是否为空
+            if (StringUtils.isBlank(sendValue)) {
+
+                System.out.println(&quot;紧急短信，用户下单失败，请查找原因,ip=&quot; + ip);
+                //发送HTTP请求，调用短信服务
+                redisTemplate.opsForValue().set(sendOrderKey, &quot;save-order-fail&quot;, 20, TimeUnit.SECONDS);
+            } else {
+                System.out.println(&quot;已经发送短信，20秒内不重复发送&quot;);
+            }
+        }).start();
+
+
+        Map&lt;String, Object&gt; msg = new HashMap&lt;&gt;();
+        msg.put(&quot;code&quot;, -1);
+        msg.put(&quot;msg&quot;, &quot;因抢购人数众多，请稍后再试&quot;);
+        return msg;
+    }
+}
+</code></pre>
+
+<h3 id="5-针对商品服务做降级处理">5.针对商品服务做降级处理</h3>
+
+<pre><code class="language-java">package com.ly.order_service.fallback;
+
+import com.ly.order_service.service.ProductClicent;
+import org.springframework.stereotype.Component;
+
+/**
+ * 针对商品服务，做降级处理
+ */
+@Component
+public class ProductClientFallback implements ProductClicent {
+    @Override
+    public String findById(int id) {
+        System.out.println(&quot;feign 调用product-service findById 异常&quot;);
+
+        return null;
+    }
+}
+</code></pre>
+
+<h3 id="6-开启feign支持hystrix-注意-一定要开启-旧版本默认支持-新版本默认关闭">6.开启feign支持hystrix  (注意，一定要开启，旧版本默认支持，新版本默认关闭)</h3>
+
+<p>feign:
+              hystrix:
+                enabled: true</p>
+
+  </section>
+  <footer>
+    
+    
+    
+    <section class="author-info row">
+      <div class="author-avatar col-md-2">
+        
+      </div>
+      <div class="author-meta col-md-6">
+        
+        
+      </div>
+      
+    </section>
+    <ul class="pager">
+      
+      <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Older</a></li>
+      
+      
+      <li class="next"><a href="https://ly19911114.github.io/post/mybatis-%E4%B8%80%E7%BA%A7%E7%BC%93%E5%AD%98%E5%92%8C%E4%BA%8C%E7%BA%A7%E7%BC%93%E5%AD%98%E7%9A%84%E5%8C%BA%E5%88%AB%E7%BB%83%E4%B9%A0/">Newer <span aria-hidden="true">&rarr;</span></a></li>
+      
+    </ul>
+  </footer>
+</article>
+
+  </main>
+  <footer class="container global-footer">
+    <div class="copyright-note pull-left">
+      
+    </div>
+    <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <script src="https://ly19911114.github.io/js/highlight.pack.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+  
+  
+</body>
+</html>
+
