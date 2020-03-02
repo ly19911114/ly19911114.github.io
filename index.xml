@@ -6,10 +6,46 @@
     <description>Recent content on Welcome to the mysterious world</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 01 Mar 2020 15:44:42 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 03 Mar 2020 00:00:38 +0800</lastBuildDate>
     
 	<atom:link href="https://ly19911114.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Hash底层实现原理</title>
+      <link>https://ly19911114.github.io/post/hash%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</link>
+      <pubDate>Tue, 03 Mar 2020 00:00:38 +0800</pubDate>
+      
+      <guid>https://ly19911114.github.io/post/hash%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</guid>
+      <description>一、HashMap简介
+\1. HashMap是用于存储Key-Value键值对的集合；
+\2. HashMap根据键的hashCode值存储数据，大多数情况下可以直接定位到它的值，So具有很快的访问速度，但遍历顺序不确定；
+\3. HashMap中键key为null的记录至多只允许一条，值value为null的记录可以有多条；
+\4. HashMap非线程安全，即任一时刻允许多个线程同时写HashMap，可能会导致数据的不一致。
+图1. HashMap的继承
+*二、HashMap底层存储结构*
+从整体结构上看HashMap是由数组+链表+红黑树（JDK1.8后增加了红黑树部分）实现的。
+图2. HashMap整体存储结构
+数组：
+HashMap是一个用于存储Key-Value键值对的集合，每一个键值对也叫做一个Entry；这些Entry分散的存储在一个数组当中，该数组就是HashMap的主干。
+图3. HashMap存储Entry的数组
+链表：
+因为数组Table的长度是有限的，使用hash函数计算时可能会出现index冲突的情况，所以我们需要链表来解决冲突；数组Table的每一个元素不单纯只是一个Entry对象，它还是一个链表的头节点，每一个Entry对象通过Next指针指向下一个Entry节点；当新来的Entry映射到冲突数组位置时，只需要插入对应的链表位置即可。
+图4. HashMap链表
+index冲突例子如下：
+比如调用 hashMap.put(&amp;ldquo;China&amp;rdquo;, 0) ，插入一个Key为“China&amp;rdquo;的元素；这时候我们需要利用一个哈希函数来确定Entry的具体插入位置(index)：通过index = Hash(&amp;ldquo;China&amp;rdquo;)，假定最后计算出的index是2，那么Entry的插入结果如下：
+图5. index冲突-1
+但是，因为HashMap的长度是有限的，当插入的Entry越来越多时，再完美的Hash函数也难免会出现index冲突的情况。比如下面这样：
+图6. index冲突-2
+经过hash函数计算发现即将插入的Entry的index值也为2，这样就会与之前插入的Key为“China”的Entry起冲突；这时就可以用链表来解决冲突，当新来的Entry映射到冲突的数组位置时，只需要插入到对应的链表即可；此外，新来的Entry节点插入链表时使用的是“头插法”，即会插在链表的头部，因为HashMap的发明者认为后插入的Entry被查找的概率更大。
+图7. index冲突-3
+红黑树：
+当链表长度超过阈值（8）时，会将链表转换为红黑树，使HashMap的性能得到进一步提升。
+图8. HashMap红黑树
+HashMap底层存储结构源码：
+*Node类用来实现数组及链表的数据结构：*
+1 /** 数组及链表的数据结构 2 * Basic hash bin node, used for most entries. (See below for 3 * TreeNode subclass, and in LinkedHashMap for its Entry subclass.</description>
+    </item>
     
     <item>
       <title>SpringCloud的学习总结</title>

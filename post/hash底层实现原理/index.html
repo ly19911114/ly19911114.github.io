@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta property="og:title" content=" Hash底层实现原理 &middot;  Welcome to the mysterious world" />
+  
+  <meta property="og:site_name" content="Welcome to the mysterious world" />
+  <meta property="og:url" content="https://ly19911114.github.io/post/hash%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/" />
+  
+  
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:article:published_time" content="2020-03-03T00:00:38&#43;08:00" />
+  
+  
+
+  <title>
+     Hash底层实现原理 &middot;  Welcome to the mysterious world
+  </title>
+
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/main.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/github.css" />
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400" type="text/css">
+  <link rel="shortcut icon" href="https://ly19911114.github.io/images/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://ly19911114.github.io/images/apple-touch-icon.png" />
+  
+</head>
+<body>
+    <header class="global-header"  style="background-image:url( /images/bg.jpg )">
+    <section class="header-text">
+      <h1><a href="https://ly19911114.github.io/">Welcome to the mysterious world</a></h1>
+      
+      <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+      
+      <a href="https://ly19911114.github.io/" class="btn-header btn-back hidden-xs">
+        <i class="fa fa-angle-left" aria-hidden="true"></i>
+        &nbsp;Home
+      </a>
+      
+      
+    </section>
+  </header>
+  <main class="container">
+
+
+<article>
+  <header>
+    <h1 class="text-primary">Hash底层实现原理</h1>
+    <div class="post-meta clearfix">
+    
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-03-03T00:00:38&#43;08:00">
+          Mar 3, 2020
+        </time>
+      </div>
+    
+      <div class="pull-right">
+        
+      </div>
+    </div>
+  </header>
+  <section>
+    <p><strong><em>一、HashMap简介</em></strong></p>
+
+<p>\1. HashMap是用于存储Key-Value键值对的集合；</p>
+
+<p>\2. HashMap根据键的hashCode值存储数据，大多数情况下可以直接定位到它的值，So具有很快的访问速度，但遍历顺序不确定；</p>
+
+<p>\3. HashMap中键key为null的记录至多只允许一条，值value为null的记录可以有多条；</p>
+
+<p>\4. HashMap非线程安全，即任一时刻允许多个线程同时写HashMap，可能会导致数据的不一致。</p>
+
+<p><strong>图1. HashMap的继承</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190815161314175-1827983961.jpg" alt="img" /></p>
+
+<p>*<strong>二、HashMap底层存储结构*</strong></p>
+
+<p>从整体结构上看HashMap是由数组+链表+红黑树（JDK1.8后增加了红黑树部分）实现的。</p>
+
+<p><strong>图2. HashMap整体存储结构</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190815150522973-251589836.jpg" alt="img" /></p>
+
+<p><strong><em>数组：</em></strong></p>
+
+<p>HashMap是一个用于存储Key-Value键值对的集合，每一个键值对也叫做一个Entry；这些Entry分散的存储在一个数组当中，该数组就是HashMap的主干。</p>
+
+<p><strong>图3. HashMap存储Entry的数组</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190815160854101-136168419.jpg" alt="img" /></p>
+
+<p><strong><em>链表：</em></strong></p>
+
+<p>因为数组Table的长度是有限的，使用hash函数计算时可能会出现index冲突的情况，所以我们需要链表来解决冲突；数组Table的每一个元素不单纯只是一个Entry对象，它还是一个链表的头节点，每一个Entry对象通过Next指针指向下一个Entry节点；当新来的Entry映射到冲突数组位置时，只需要插入对应的链表位置即可。</p>
+
+<p><strong>图4. HashMap链表</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190815160754421-1174844889.jpg" alt="img" /></p>
+
+<p><strong><em>index冲突例子如下：</em></strong></p>
+
+<p>比如调用 hashMap.put(&ldquo;China&rdquo;, 0) ，插入一个Key为“China&rdquo;的元素；这时候我们需要利用一个哈希函数来确定Entry的具体插入位置(index)：通过index = Hash(&ldquo;China&rdquo;)，假定最后计算出的index是2，那么Entry的插入结果如下：</p>
+
+<p><strong>图5. index冲突-1</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190815162638911-14706862.png" alt="img" /></p>
+
+<p>但是，因为HashMap的长度是有限的，当插入的Entry越来越多时，再完美的Hash函数也难免会出现index冲突的情况。比如下面这样：</p>
+
+<p><strong>图6. index冲突-2</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190815162929365-1267334913.png" alt="img" /></p>
+
+<p>经过hash函数计算发现即将插入的Entry的index值也为2，这样就会与之前插入的Key为“China”的Entry起冲突；这时就可以用链表来解决冲突，当新来的Entry映射到冲突的数组位置时，只需要插入到对应的链表即可；此外，新来的Entry节点插入链表时使用的是“头插法”，即会插在链表的头部，因为HashMap的发明者认为后插入的Entry被查找的概率更大。</p>
+
+<p><strong>图7. index冲突-3</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190815163726142-1530368600.png" alt="img" /></p>
+
+<p><strong><em>红黑树：</em></strong></p>
+
+<p>当链表长度超过阈值（8）时，会将链表转换为红黑树，使HashMap的性能得到进一步提升。</p>
+
+<p><strong>图8. HashMap红黑树</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190815174335587-794715448.jpg" alt="img" /></p>
+
+<p><strong>HashMap底层存储结构源码：</strong></p>
+
+<p>*<strong>Node类用来实现数组及链表的数据结构：*</strong></p>
+
+<pre><code class="language-java"> 1    /** 数组及链表的数据结构
+ 2      * Basic hash bin node, used for most entries.  (See below for
+ 3      * TreeNode subclass, and in LinkedHashMap for its Entry subclass.)
+ 4      */
+ 5     static class Node&lt;K,V&gt; implements Map.Entry&lt;K,V&gt; {
+ 6         final int hash;  //保存节点的hash值
+ 7         final K key;  //保存节点的key值
+ 8         V value;  //保存节点的value值
+ 9        //next是指向链表结构下当前节点的next节点，红黑树TreeNode节点中也用到next
+10         Node&lt;K,V&gt; next;  
+11 
+12         Node(int hash, K key, V value, Node&lt;K,V&gt; next) {
+13             this.hash = hash;
+14             this.key = key;
+15             this.value = value;
+16             this.next = next;
+17         }
+18 
+19         public final K getKey()        { return key; }
+20         public final V getValue()      { return value; }
+21         public final String toString() { return key + &quot;=&quot; + value; }
+22 
+23         public final int hashCode() {
+24             return Objects.hashCode(key) ^ Objects.hashCode(value);
+25         }
+26 
+27         public final V setValue(V newValue) {
+28             V oldValue = value;
+29             value = newValue;
+30             return oldValue;
+31         }
+32 
+33         public final boolean equals(Object o) {
+34             if (o == this)
+35                 return true;
+36             if (o instanceof Map.Entry) {
+37                 Map.Entry&lt;?,?&gt; e = (Map.Entry&lt;?,?&gt;)o;
+38                 if (Objects.equals(key, e.getKey()) &amp;&amp;
+39                     Objects.equals(value, e.getValue()))
+40                     return true;
+41             }
+42             return false;
+43         }
+44     }
+</code></pre>
+
+<p><strong><em>TreeNode用来实现红黑树相关的存储结构：</em></strong></p>
+
+<pre><code class="language-java"> 1    /**  继承LinkedHashMap.Entry&lt;K,V&gt;，红黑树相关存储结构
+ 2      * Entry for Tree bins. Extends LinkedHashMap.Entry (which in turn
+ 3      * extends Node) so can be used as extension of either regular or
+ 4      * linked node.
+ 5      */
+ 6     static final class TreeNode&lt;K,V&gt; extends LinkedHashMap.Entry&lt;K,V&gt; {
+ 7         TreeNode&lt;K,V&gt; parent;  //存储当前节点的父节点
+ 8         TreeNode&lt;K,V&gt; left;  //存储当前节点的左孩子
+ 9         TreeNode&lt;K,V&gt; right;  //存储当前节点的右孩子
+10         TreeNode&lt;K,V&gt; prev;    //存储当前节点的前一个节点
+11         boolean red;  //存储当前节点的颜色（红、黑）
+12         TreeNode(int hash, K key, V val, Node&lt;K,V&gt; next) {
+13             super(hash, key, val, next);
+14         }
+15 
+16 public class LinkedHashMap&lt;K,V&gt;
+17     extends HashMap&lt;K,V&gt;
+18     implements Map&lt;K,V&gt;
+19 {
+20 
+21     /**
+22      * HashMap.Node subclass for normal LinkedHashMap entries.
+23      */
+24     static class Entry&lt;K,V&gt; extends HashMap.Node&lt;K,V&gt; {
+25         Entry&lt;K,V&gt; before, after;
+26         Entry(int hash, K key, V value, Node&lt;K,V&gt; next) {
+27             super(hash, key, value, next);
+28         }
+29     }
+</code></pre>
+
+<p><strong><em>三、HashMap各常量及成员变量的作用</em></strong></p>
+
+<p><strong><em>HashMap相关常量：</em></strong></p>
+
+<pre><code class="language-java"> 1     /** 创建HashMap时未指定初始容量情况下的默认容量
+ 2      * The default initial capacity - MUST be a power of two.
+ 3      */
+ 4     static final int DEFAULT_INITIAL_CAPACITY = 1 &lt;&lt; 4; // aka 16   1 &lt;&lt; 4 = 16
+ 5 
+ 6     /** HashMap的最大容量
+ 7      * The maximum capacity, used if a higher value is implicitly specified
+ 8      * by either of the constructors with arguments.
+ 9      * MUST be a power of two &lt;= 1&lt;&lt;30.
+10      */
+11     static final int MAXIMUM_CAPACITY = 1 &lt;&lt; 30;  // 1 &lt;&lt; 30 = 1073741824
+12 
+13     /** HashMap默认的装载因子，当HashMap中元素数量超过 容量*装载因子 时，则进行resize()扩容操作
+14      * The load factor used when none specified in constructor.
+15      */
+16     static final float DEFAULT_LOAD_FACTOR = 0.75f;
+17 
+18     /** 用来确定何时解决hash冲突的，链表转为红黑树
+19      * The bin count threshold for using a tree rather than list for a
+20      * bin.  Bins are converted to trees when adding an element to a
+21      * bin with at least this many nodes. The value must be greater
+22      * than 2 and should be at least 8 to mesh with assumptions in
+23      * tree removal about conversion back to plain bins upon
+24      * shrinkage.
+25      */
+26     static final int TREEIFY_THRESHOLD = 8;
+27 
+28     /** 用来确定何时解决hash冲突的，红黑树转变为链表
+29      * The bin count threshold for untreeifying a (split) bin during a
+30      * resize operation. Should be less than TREEIFY_THRESHOLD, and at
+31      * most 6 to mesh with shrinkage detection under removal.
+32      */
+33     static final int UNTREEIFY_THRESHOLD = 6;
+34 
+35     /** 当想要将解决hash冲突的链表转变为红黑树时，需要判断下此时数组的容量，若是由于数组容量太小（小于MIN_TREEIFY_CAPACITY）而导致hash冲突，则不进行链表转为红黑树的操作，而是利用resize()函数对HashMap扩容
+36      * The smallest table capacity for which bins may be treeified.
+37      * (Otherwise the table is resized if too many nodes in a bin.)
+38      * Should be at least 4 * TREEIFY_THRESHOLD to avoid conflicts
+39      * between resizing and treeification thresholds.
+40      */
+41     static final int MIN_TREEIFY_CAPACITY = 64;
+</code></pre>
+
+<p><strong><em>HashMap相关成员变量：</em></strong></p>
+
+<pre><code class="language-java"> 1 /* ---------------- Fields -------------- */
+ 2 
+ 3     /** 保存Node&lt;K,V&gt;节点的数组
+ 4      * The table, initialized on first use, and resized as
+ 5      * necessary. When allocated, length is always a power of two.
+ 6      * (We also tolerate length zero in some operations to allow
+ 7      * bootstrapping mechanics that are currently not needed.)
+ 8      */
+ 9     transient Node&lt;K,V&gt;[] table;
+10 
+11     /** 由HashMap中Node&lt;K,V&gt;节点构成的set
+12      * Holds cached entrySet(). Note that AbstractMap fields are used
+13      * for keySet() and values().
+14      */
+15     transient Set&lt;Map.Entry&lt;K,V&gt;&gt; entrySet;
+16 
+17     /** 记录HashMap当前存储的元素的数量
+18      * The number of key-value mappings contained in this map.
+19      */
+20     transient int size;
+21 
+22     /** 记录HashMap发生结构性变化的次数（value值的覆盖不属于结构性变化）
+23      * The number of times this HashMap has been structurally modified
+24      * Structural modifications are those that change the number of mappings in
+25      * the HashMap or otherwise modify its internal structure (e.g.,
+26      * rehash).  This field is used to make iterators on Collection-views of
+27      * the HashMap fail-fast.  (See ConcurrentModificationException).
+28      */
+29     transient int modCount;
+30 
+31     /** threshold的值应等于table.length*loadFactor，size超过这个值时会进行resize()扩容
+32      * The next size value at which to resize (capacity * load factor).
+33      *
+34      * @serial
+35      */
+36     // (The javadoc description is true upon serialization.
+37     // Additionally, if the table array has not been allocated, this
+38     // field holds the initial array capacity, or zero signifying
+39     // DEFAULT_INITIAL_CAPACITY.)
+40     int threshold;
+41 
+42     /** 记录HashMap的装载因子
+43      * The load factor for the hash table.
+44      *
+45      * @serial
+46      */
+47     final float loadFactor;
+48 
+49     /* ---------------- Public operations -------------- */
+</code></pre>
+
+<p><strong><em>四、HashMap的四种构造方法</em></strong></p>
+
+<p>HashMap提供了四个构造方法，四个构造方法中方法1、2、3都没有进行数组的初始化操作，即使调用了构造方法此时存放HaspMap的数组中元素的table表长度依旧为0 ；在第四个构造方法中调用了putMapEntries()方法完成了table的初始化操作，并将m中的元素添加到HashMap中。</p>
+
+<p><strong><em>HashMap四个构造方法：</em></strong></p>
+
+<pre><code class="language-java">  1 /* ---------------- Public operations -------------- */
+  2 
+  3     /** 构造方法1，指定初始容量及装载因子
+  4      * Constructs an empty &lt;tt&gt;HashMap&lt;/tt&gt; with the specified initial
+  5      * capacity and load factor.
+  6      *
+  7      * @param  initialCapacity the initial capacity
+  8      * @param  loadFactor      the load factor
+  9      * @throws IllegalArgumentException if the initial capacity is negative
+ 10      *         or the load factor is nonpositive
+ 11      */
+ 12     public HashMap(int initialCapacity, float loadFactor) {
+ 13         if (initialCapacity &lt; 0)
+ 14             throw new IllegalArgumentException(&quot;Illegal initial capacity: &quot; +
+ 15                                                initialCapacity);
+ 16         if (initialCapacity &gt; MAXIMUM_CAPACITY)
+ 17             initialCapacity = MAXIMUM_CAPACITY;
+ 18         if (loadFactor &lt;= 0 || Float.isNaN(loadFactor))
+ 19             throw new IllegalArgumentException(&quot;Illegal load factor: &quot; +
+ 20                                                loadFactor);
+ 21         this.loadFactor = loadFactor;
+ 22         //tableSize(initialCapacity)方法返回的值最接近initialCapacity的2的幂，若设定初始容量为9，则HashMap的实际容量为16
+ 23         //另外，通过HashMap(int initialCapacity, float loadFactor)该方法创建的HashMap初始容量的值存在threshold中
+ 24         this.threshold = tableSizeFor(initialCapacity);
+ 25     }
+ 26 
+ 27 
+ 28      /** tableSizeFor(initialCapacity)方法返回的值是最接近initialCapacity的2的幂次方
+ 29      * Returns a power of two size for the given target capacity.
+ 30      */
+ 31     static final int tableSizeFor(int cap) {
+ 32         int n = cap - 1;
+ 33         n |= n &gt;&gt;&gt; 1;
+ 34         n |= n &gt;&gt;&gt; 2;
+ 35         n |= n &gt;&gt;&gt; 4;
+ 36         n |= n &gt;&gt;&gt; 8;
+ 37         n |= n &gt;&gt;&gt; 16;
+ 38         return (n &lt; 0) ? 1 : (n &gt;= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+ 39     }
+ 40 
+ 41     /** 构造方法2，仅指定初始容量，装载因子的值采用默认的0.75
+ 42      * Constructs an empty &lt;tt&gt;HashMap&lt;/tt&gt; with the specified initial
+ 43      * capacity and the default load factor (0.75).
+ 44      *
+ 45      * @param  initialCapacity the initial capacity.
+ 46      * @throws IllegalArgumentException if the initial capacity is negative.
+ 47      */
+ 48     public HashMap(int initialCapacity) {
+ 49         this(initialCapacity, DEFAULT_LOAD_FACTOR);
+ 50     }
+ 51 
+ 52     /** 构造方法3，所有参数均采用默认值
+ 53      * Constructs an empty &lt;tt&gt;HashMap&lt;/tt&gt; with the default initial capacity
+ 54      * (16) and the default load factor (0.75).
+ 55      */
+ 56     public HashMap() {
+ 57         this.loadFactor = DEFAULT_LOAD_FACTOR; // all other fields defaulted
+ 58     }
+ 59 
+ 60     /** 构造方法4，指定集合转为HashMap
+ 61      * Constructs a new &lt;tt&gt;HashMap&lt;/tt&gt; with the same mappings as the
+ 62      * specified &lt;tt&gt;Map&lt;/tt&gt;.  The &lt;tt&gt;HashMap&lt;/tt&gt; is created with
+ 63      * default load factor (0.75) and an initial capacity sufficient to
+ 64      * hold the mappings in the specified &lt;tt&gt;Map&lt;/tt&gt;.
+ 65      *
+ 66      * @param   m the map whose mappings are to be placed in this map
+ 67      * @throws  NullPointerException if the specified map is null
+ 68      */
+ 69     public HashMap(Map&lt;? extends K, ? extends V&gt; m) {
+ 70         this.loadFactor = DEFAULT_LOAD_FACTOR;
+ 71         putMapEntries(m, false);
+ 72     }
+ 73 
+ 74      /** 把Map&lt;? extends K, ? extends V&gt; m中的元素插入HashMap
+ 75      * Implements Map.putAll and Map constructor
+ 76      *
+ 77      * @param m the map
+ 78      * @param evict false when initially constructing this map, else
+ 79      * true (relayed to method afterNodeInsertion).
+ 80      */
+ 81     final void putMapEntries(Map&lt;? extends K, ? extends V&gt; m, boolean evict) {
+ 82         int s = m.size();
+ 83         if (s &gt; 0) {
+ 84             //在创建HashMap时调用putMapEntries()函数，则table一定为空
+ 85             if (table == null) { // pre-size
+ 86                 //根据待插入map的size计算出要创建的HashMap的容量
+ 87                 float ft = ((float)s / loadFactor) + 1.0F;
+ 88                 int t = ((ft &lt; (float)MAXIMUM_CAPACITY) ?
+ 89                          (int)ft : MAXIMUM_CAPACITY);
+ 90                 //把要创建的HashMap的容量存在threshold中
+ 91                 if (t &gt; threshold)
+ 92                     threshold = tableSizeFor(t);
+ 93             }
+ 94             //如果待插入map的size大于threshold，则进行resize()
+ 95             else if (s &gt; threshold)
+ 96                 resize();
+ 97             for (Map.Entry&lt;? extends K, ? extends V&gt; e : m.entrySet()) {
+ 98                 K key = e.getKey();
+ 99                 V value = e.getValue();
+100                 //最终实际上同样也是调用了putVal()函数进行元素的插入
+101                 putVal(hash(key), key, value, false, evict);
+102             }
+103         }
+104     }
+</code></pre>
+
+<p><strong><em>五、HashMap的put方法</em></strong></p>
+
+<p>假如调用hashMap.put(&ldquo;apple&rdquo;,0)方法<code>，将会在HashMap的table数组中插入一个Key为“apple”的元素；这时需要通过hash()函数来确定该Entry的具体插入位置，而hash()方法内部会调用hashCode()函数得到“apple”的hashCode；然后putVal()方法经过一定计算得到最终的插入位置index，最后将这个Entry插入到table的index位置。</code></p>
+
+<pre><code class="language-java">/**  指定key和value，向HashMap中插入节点
+ 2      * Associates the specified value with the specified key in this map.
+ 3      * If the map previously contained a mapping for the key, the old
+ 4      * value is replaced.
+ 5      *
+ 6      * @param key key with which the specified value is to be associated
+ 7      * @param value value to be associated with the specified key
+ 8      * @return the previous value associated with &lt;tt&gt;key&lt;/tt&gt;, or
+ 9      *         &lt;tt&gt;null&lt;/tt&gt; if there was no mapping for &lt;tt&gt;key&lt;/tt&gt;.
+10      *         (A &lt;tt&gt;null&lt;/tt&gt; return can also indicate that the map
+11      *         previously associated &lt;tt&gt;null&lt;/tt&gt; with &lt;tt&gt;key&lt;/tt&gt;.)
+12      */
+13     public V put(K key, V value) {
+14         //插入节点，hash值的计算调用hash(key)函数，实际调用putVal()插入节点
+15         return putVal(hash(key), key, value, false, true);
+16     }
+17 
+18     /** key的hash值计算是通过hashCode()的高16位异或低16位实现的：h = key.hashCode()) ^ (h &gt;&gt;&gt; 16)，使用位运算替代了取模运算，在table的长度比较小的情况下，也能保证hashcode的高位参与到地址映射的计算当中，同时不会有太大的开销。
+19      * Computes key.hashCode() and spreads (XORs) higher bits of hash
+20      * to lower.  Because the table uses power-of-two masking, sets of
+21      * hashes that vary only in bits above the current mask will
+22      * always collide. (Among known examples are sets of Float keys
+23      * holding consecutive whole numbers in small tables.)  So we
+24      * apply a transform that spreads the impact of higher bits
+25      * downward. There is a tradeoff between speed, utility, and
+26      * quality of bit-spreading. Because many common sets of hashes
+27      * are already reasonably distributed (so don't benefit from
+28      * spreading), and because we use trees to handle large sets of
+29      * collisions in bins, we just XOR some shifted bits in the
+30      * cheapest possible way to reduce systematic lossage, as well as
+31      * to incorporate impact of the highest bits that would otherwise
+32      * never be used in index calculations because of table bounds.
+33      */
+34     static final int hash(Object key) {
+35         int h;
+36         return (key == null) ? 0 : (h = key.hashCode()) ^ (h &gt;&gt;&gt; 16);
+37     }
+</code></pre>
+
+<p><strong><em>putVal()函数：</em></strong></p>
+
+<pre><code class="language-java">1    /** 实际将元素插入HashMap中的方法
+ 2      * Implements Map.put and related methods
+ 3      *
+ 4      * @param hash hash for key
+ 5      * @param key the key
+ 6      * @param value the value to put
+ 7      * @param onlyIfAbsent if true, don't change existing value
+ 8      * @param evict if false, the table is in creation mode.
+ 9      * @return previous value, or null if none
+10      */
+11     final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+12                    boolean evict) {
+13         Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; p; int n, i;
+14         //判断table是否已初始化，否则进行初始化table操作
+15         if ((tab = table) == null || (n = tab.length) == 0)
+16             n = (tab = resize()).length;
+17         //根据hash值确定节点在数组中的插入的位置，即计算索引存储的位置，若该位置无元素则直接进行插入
+18         if ((p = tab[i = (n - 1) &amp; hash]) == null)
+19             tab[i] = newNode(hash, key, value, null);
+20         else {
+21             //节点若已经存在元素，即待插入位置存在元素
+22             Node&lt;K,V&gt; e; K k;
+23             //对比已经存在的元素与待插入元素的hash值和key值，执行赋值操作
+24             if (p.hash == hash &amp;&amp;
+25                 ((k = p.key) == key || (key != null &amp;&amp; key.equals(k))))
+26                 e = p;
+27             //判断该元素是否为红黑树节点
+28             else if (p instanceof TreeNode)
+29                 //红黑树节点则调用putTreeVal()函数进行插入
+30                 e = ((TreeNode&lt;K,V&gt;)p).putTreeVal(this, tab, hash, key, value);
+31             else {
+32                 //若该元素是链表，且为链表头节点，则从此节点开始向后寻找合适的插入位置
+33                 for (int binCount = 0; ; ++binCount) {
+34                     if ((e = p.next) == null) {
+35                         //找到插入位置后，新建节点插入
+36                         p.next = newNode(hash, key, value, null);
+37                         //若链表上节点超过TREEIFY_THRESHOLD - 1，即链表长度为8，将链表转变为红黑树
+38                         if (binCount &gt;= TREEIFY_THRESHOLD - 1) // -1 for 1st
+39                             treeifyBin(tab, hash);
+40                         break;
+41                     }
+42                     //若待插入元素在HashMap中已存在，key存在了则直接覆盖
+43                     if (e.hash == hash &amp;&amp;
+44                         ((k = e.key) == key || (key != null &amp;&amp; key.equals(k))))
+45                         break;
+46                     p = e;
+47                 }
+48             }
+49             if (e != null) { // existing mapping for key
+50                 V oldValue = e.value;
+51                 if (!onlyIfAbsent || oldValue == null)
+52                     e.value = value;
+53                 afterNodeAccess(e);
+54                 //若存在key节点，则返回旧的key值
+55                 return oldValue;
+56             }
+57         }
+58         //记录修改次数
+59         ++modCount;
+60         //判断是否需要扩容
+61         if (++size &gt; threshold)
+62             resize();
+63         //空操作
+64         afterNodeInsertion(evict);
+65         //若不存在key节点，则返回null
+66         return null;
+67     }
+</code></pre>
+
+<p><strong><em>链表转红黑树的putTreeVal()函数：</em></strong></p>
+
+<pre><code class="language-java">1        /** 链表转红黑树
+ 2          * Tree version of putVal.
+ 3          */
+ 4         final TreeNode&lt;K,V&gt; putTreeVal(HashMap&lt;K,V&gt; map, Node&lt;K,V&gt;[] tab,
+ 5                                        int h, K k, V v) {
+ 6             Class&lt;?&gt; kc = null;
+ 7             boolean searched = false;
+ 8             TreeNode&lt;K,V&gt; root = (parent != null) ? root() : this;
+ 9             //从根节点开始查找合适的插入位置
+10             for (TreeNode&lt;K,V&gt; p = root;;) {
+11                 int dir, ph; K pk;
+12                 if ((ph = p.hash) &gt; h)
+13                     //若dir&lt;0，则查找当前节点的左孩子
+14                     dir = -1;
+15                 else if (ph &lt; h)
+16                     //若dir&gt;0，则查找当前节点的右孩子
+17                     dir = 1;
+18                 //hash值或是key值相同
+19                 else if ((pk = p.key) == k || (k != null &amp;&amp; k.equals(pk)))
+20                     return p;
+21                 //1.当前节点与待插入节点key不同，hash值相同
+22                 //2.k是不可比较的，即k未实现comparable&lt;K&gt;接口，或者compareComparables(kc,k,pk)的返回值为0
+23                 else if ((kc == null &amp;&amp;
+24                           (kc = comparableClassFor(k)) == null) ||
+25                          (dir = compareComparables(kc, k, pk)) == 0) {
+26                     //在以当前节点为根节点的整个树上搜索是否存在待插入节点(只搜索一次)
+27                     if (!searched) {
+28                         TreeNode&lt;K,V&gt; q, ch;
+29                         searched = true;
+30                         if (((ch = p.left) != null &amp;&amp;
+31                              (q = ch.find(h, k, kc)) != null) ||
+32                             ((ch = p.right) != null &amp;&amp;
+33                              (q = ch.find(h, k, kc)) != null))
+34                             //若搜索发现树中存在待插入节点，则直接返回
+35                             return q;
+36                     }
+37                     //指定了一个k的比较方式 tieBreakOrder
+38                     dir = tieBreakOrder(k, pk);
+39                 }
+40 
+41                 TreeNode&lt;K,V&gt; xp = p;
+42                 if ((p = (dir &lt;= 0) ? p.left : p.right) == null) {
+43                     //找到了待插入位置，xp为待插入位置的父节点，TreeNode节点中既存在树状关系，又存在链式关系，而且还是双端链表
+44                     Node&lt;K,V&gt; xpn = xp.next;
+45                     TreeNode&lt;K,V&gt; x = map.newTreeNode(h, k, v, xpn);
+46                     if (dir &lt;= 0)
+47                         xp.left = x;
+48                     else
+49                         xp.right = x;
+50                     xp.next = x;
+51                     x.parent = x.prev = xp;
+52                     if (xpn != null)
+53                         ((TreeNode&lt;K,V&gt;)xpn).prev = x;
+54                     //插入节点后进行二叉树平衡操作
+55                     moveRootToFront(tab, balanceInsertion(root, x));
+56                     return null;
+57                 }
+58             }
+59         }
+60 
+61      /** 定义了一个k的比较方法
+62          * Tie-breaking utility for ordering insertions when equal
+63          * hashCodes and non-comparable. We don't require a total
+64          * order, just a consistent insertion rule to maintain
+65          * equivalence across rebalancings. Tie-breaking further than
+66          * necessary simplifies testing a bit.
+67          */
+68         static int tieBreakOrder(Object a, Object b) {
+69             int d;
+70             if (a == null || b == null ||
+71                 (d = a.getClass().getName().
+72                  compareTo(b.getClass().getName())) == 0)
+73                 //System.identityHashCode()实际是比较对象a,b的内存地址
+74                 d = (System.identityHashCode(a) &lt;= System.identityHashCode(b) ?
+75                      -1 : 1);
+76             return d;
+77         }
+</code></pre>
+
+<p><strong>图9. hashCode计算得到table索引的过程</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190816163041990-1910476184.png" alt="img" /></p>
+
+<p><strong>图10. put添加方法执行过程</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190816163242459-1230422981.png" alt="img" /></p>
+
+<p>上图的HashMap的put方法执行流程图，可以总结为如下主要步骤：</p>
+
+<p>\1. 判断数组table是否为null，若为null则执行resize()扩容操作。</p>
+
+<p>\2. 根据键key的值计算hash值得到插入的数组索引i，若table[i] == nulll，则直接新建节点插入，进入步骤6；若table[i]非null，则继续执行下一步。</p>
+
+<p>\3. 判断table[i]的首个元素key是否和当前key相同（hashCode和equals均相同），若相同则直接覆盖value，进入步骤6，反之继续执行下一步。</p>
+
+<p>\4. 判断table[i]是否为treeNode，若是红黑树，则直接在树中插入键值对并进入步骤6，反之继续执行下一步。</p>
+
+<p>\5. 遍历table[i]，判断链表长度是否大于8，若&gt;8，则把链表转换为红黑树，在红黑树中执行插入操作；若&lt;8，则进行链表的插入操作；遍历过程中若发现key已存在则会直接覆盖该key的value值。</p>
+
+<p>\6. 插入成功后，判断实际存在的键值对数量size是否超过了最大容量threshold，若超过则进行扩容。</p>
+
+<p>*<strong>六、HashMap的get方法*</strong></p>
+
+<p><strong><em>get()和getNode()函数：</em></strong></p>
+
+<pre><code class="language-java"> 1    /**
+ 2      * Returns the value to which the specified key is mapped,
+ 3      * or {@code null} if this map contains no mapping for the key.
+ 4      *
+ 5      * &lt;p&gt;More formally, if this map contains a mapping from a key
+ 6      * {@code k} to a value {@code v} such that {@code (key==null ? k==null :
+ 7      * key.equals(k))}, then this method returns {@code v}; otherwise
+ 8      * it returns {@code null}.  (There can be at most one such mapping.)
+ 9      *
+10      * &lt;p&gt;A return value of {@code null} does not &lt;i&gt;necessarily&lt;/i&gt;
+11      * indicate that the map contains no mapping for the key; it's also
+12      * possible that the map explicitly maps the key to {@code null}.
+13      * The {@link #containsKey containsKey} operation may be used to
+14      * distinguish these two cases.
+15      *
+16      * @see #put(Object, Object)
+17      */
+18     public V get(Object key) {
+19         Node&lt;K,V&gt; e;
+20         //实际上是根据输入节点的hash值和key值，利用getNode方法进行查找
+21         return (e = getNode(hash(key), key)) == null ? null : e.value;
+22     }
+23 
+24     /**
+25      * Implements Map.get and related methods
+26      *
+27      * @param hash hash for key
+28      * @param key the key
+29      * @return the node, or null if none
+30      */
+31     final Node&lt;K,V&gt; getNode(int hash, Object key) {
+32         Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; first, e; int n; K k;
+33         if ((tab = table) != null &amp;&amp; (n = tab.length) &gt; 0 &amp;&amp;
+34             (first = tab[(n - 1) &amp; hash]) != null) {
+35             if (first.hash == hash &amp;&amp; // always check first node
+36                 ((k = first.key) == key || (key != null &amp;&amp; key.equals(k))))
+37                 return first;
+38             if ((e = first.next) != null) {
+39                 if (first instanceof TreeNode)
+40                     //若定位到的节点是TreeNode节点，则在树中进行查找
+41                     return ((TreeNode&lt;K,V&gt;)first).getTreeNode(hash, key);
+42                 do {
+43                      //反之，在链表中查找
+44                     if (e.hash == hash &amp;&amp;
+45                         ((k = e.key) == key || (key != null &amp;&amp; key.equals(k))))
+46                         return e;
+47                 } while ((e = e.next) != null);
+48             }
+49         }
+50         return null;
+51     }
+</code></pre>
+
+<p><strong><em>getTreeNode()和find()函数：</em></strong></p>
+
+<pre><code class="language-java">1        /** 从根节点开始，调用find()方法进行查找
+ 2          * Calls find for root node.
+ 3          */
+ 4         final TreeNode&lt;K,V&gt; getTreeNode(int h, Object k) {
+ 5             return ((parent != null) ? root() : this).find(h, k, null);
+ 6         } 
+ 7 
+ 8        /**
+ 9          * Finds the node starting at root p with the given hash and key.
+10          * The kc argument caches comparableClassFor(key) upon first use
+11          * comparing keys.
+12          */
+13         final TreeNode&lt;K,V&gt; find(int h, Object k, Class&lt;?&gt; kc) {
+14             TreeNode&lt;K,V&gt; p = this;
+15             do {
+16                 int ph, dir; K pk;
+17                 TreeNode&lt;K,V&gt; pl = p.left, pr = p.right, q;
+18                 //首先进行hash值的比较，若不同则令当前节点变为它的左孩子or右孩子
+19                 if ((ph = p.hash) &gt; h)
+20                     p = pl;
+21                 else if (ph &lt; h)
+22                     p = pr;
+23                 //若hash值相同，进行key值的比较
+24                 else if ((pk = p.key) == k || (k != null &amp;&amp; k.equals(pk)))
+25                     return p;
+26                 else if (pl == null)
+27                     p = pr;
+28                 else if (pr == null)
+29                     p = pl;
+30                 //执行到这里，说明了hash值是相同的，key值不同
+31                //若k是可比较的并且k.compareTo(pk)的返回结果不为0，则进入下面的else if
+32                 else if ((kc != null ||
+33                           (kc = comparableClassFor(k)) != null) &amp;&amp;
+34                          (dir = compareComparables(kc, k, pk)) != 0)
+35                     p = (dir &lt; 0) ? pl : pr;
+36                 //若k是不可比较的，或者k.compareTo(pk)返回结果为0，则在整棵树中查找，先找右子树，没找到则再到左子树找
+37                 else if ((q = pr.find(h, k, kc)) != null)
+38                     return q;
+39                 else
+40                     p = pl;
+41             } while (p != null);
+42             return null;
+</code></pre>
+
+<p><strong>图11. get方法执行流程</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190816200530550-889170811.png" alt="img" /></p>
+
+<p>上图为HashMap get方法执行流程图，HashMap的查找操作相对简单，可以总结为如下主要步骤：</p>
+
+<p>\1. 首先定位到键所在的数组的下标，并获取对应节点n。</p>
+
+<p>\2. 判断n是否为null，若n为null，则返回null并结束；反之，继续下一步。</p>
+
+<p>\3. 判断n的key和要查找的key是否相同(key相同指的是hashCode和equals均相同)，若相同则返回n并结束；反之，继续下一步。</p>
+
+<p>\4. 判断是否有后续节点m，若没有则结束；反之，继续下一步。</p>
+
+<p>\5. 判断m是否为红黑树，若为红黑树则遍历红黑树，在遍历过程中如果存在某一个节点的key与要找的key相同，则返回该节点；反之，返回null；若非红黑树则继续下一步。</p>
+
+<p>\6. 遍历链表，若存在某一个节点的key与要找的key相同，则返回该节点；反之，返回null。</p>
+
+<p><strong><em>七、HashMap的remove方法</em></strong></p>
+
+<p>HashMap根据键值删除指定节点，其删除操作其实是一个“查找+删除”的过程，核心的方法是removeNode。</p>
+
+<p><strong><em>remove和removeNode()函数：</em></strong></p>
+
+<pre><code class="language-java">1     /**
+ 2      * Removes the mapping for the specified key from this map if present.
+ 3      *
+ 4      * @param  key key whose mapping is to be removed from the map
+ 5      * @return the previous value associated with &lt;tt&gt;key&lt;/tt&gt;, or
+ 6      *         &lt;tt&gt;null&lt;/tt&gt; if there was no mapping for &lt;tt&gt;key&lt;/tt&gt;.
+ 7      *         (A &lt;tt&gt;null&lt;/tt&gt; return can also indicate that the map
+ 8      *         previously associated &lt;tt&gt;null&lt;/tt&gt; with &lt;tt&gt;key&lt;/tt&gt;.)
+ 9      */
+10     public V remove(Object key) {
+11         Node&lt;K,V&gt; e;
+12         //计算出hash值，调用removeNode()方法根据键值删除指定节点
+13         return (e = removeNode(hash(key), key, null, false, true)) == null ?
+14             null : e.value;
+15     }
+16 
+17     /**
+18      * Implements Map.remove and related methods
+19      *
+20      * @param hash hash for key
+21      * @param key the key
+22      * @param value the value to match if matchValue, else ignored
+23      * @param matchValue if true only remove if value is equal
+24      * @param movable if false do not move other nodes while removing
+25      * @return the node, or null if none
+26      */
+27     final Node&lt;K,V&gt; removeNode(int hash, Object key, Object value,
+28                                boolean matchValue, boolean movable) {
+29         Node&lt;K,V&gt;[] tab; Node&lt;K,V&gt; p; int n, index;
+30         //判断表是否为空，以及p节点根据键的hash值对应到数组的索引初是否有节点
+31        //删除操作需要保证在表不为空的情况下进行，并且p节点根据键的hash值对应到数组的索引在该索引下必须要有节点；若为null，则说明此键所对应的节点不存在HashMap中
+32         if ((tab = table) != null &amp;&amp; (n = tab.length) &gt; 0 &amp;&amp;
+33             (p = tab[index = (n - 1) &amp; hash]) != null) {
+34             Node&lt;K,V&gt; node = null, e; K k; V v;
+35             //若是需要删除的节点就是该头节点，则让node引用指向它；否则什么待删除的结点在当前p所指向的头节点的链表或红黑树中，则需要遍历查找
+36             if (p.hash == hash &amp;&amp;
+37                 ((k = p.key) == key || (key != null &amp;&amp; key.equals(k))))
+38                 node = p;
+39             else if ((e = p.next) != null) {
+40                 //若头节点是红黑树节点，则调用红黑树本身的遍历方法getTreeNode，获取待删除的结点
+41                 if (p instanceof TreeNode)
+42                     node = ((TreeNode&lt;K,V&gt;)p).getTreeNode(hash, key);
+43                 else {
+44                     //否则就是普通链表，则使用do while循环遍历查找待删除结点
+45                     do {
+46                         if (e.hash == hash &amp;&amp;
+47                             ((k = e.key) == key ||
+48                              (key != null &amp;&amp; key.equals(k)))) {
+49                             node = e;
+50                             break;
+51                         }
+52                         p = e;
+53                     } while ((e = e.next) != null);
+54                 }
+55             }
+56             if (node != null &amp;&amp; (!matchValue || (v = node.value) == value ||
+57                                  (value != null &amp;&amp; value.equals(v)))) {
+58                 //若是红黑树结点的删除，则直接调用红黑树的removeTreeNode方法进行删除
+59                 if (node instanceof TreeNode)
+60                     ((TreeNode&lt;K,V&gt;)node).removeTreeNode(this, tab, movable);
+61                 //若待删除结点是一个头节点，则用它的next节点顶替它作为头节点存放在table[index]中，以此达到删除的目的
+62                 else if (node == p)
+63                     tab[index] = node.next;
+64                 //若待删除结点为普通链表中的一个结点，则用该节点的前一个节点直接跳过该待删除节点，指向它的next结点（链表通过next获取下一个结点信息）
+65                 else
+66                     p.next = node.next;
+67                 //记录修改次数
+68                 ++modCount;
+69                 --size;
+70                 afterNodeRemoval(node);
+71                 //若removeNode方法删除成功则返回被删除的结点
+72                 return node;
+73             }
+74         }
+75          //若没有删除成功则返回null
+76         return null;
+77     }
+</code></pre>
+
+<p><strong><em>八、HashMap的扩容机制</em></strong></p>
+
+<p>扩容是为了防止HashMap中的元素个数超过了阀值，从而影响性能所服务的。而数组是无法自动扩容的，HashMap的扩容是申请一个容量为原数组大小两倍的新数组，然后遍历旧数组，重新计算每个元素的索引位置，并复制到新数组中；又因为HashMap的哈希桶数组大小总是为2的幂次方，So重新计算后的索引位置要么在原来位置不变，要么就是“原位置+旧数组长度”。</p>
+
+<p>其中，threshold和loadFactor两个属性决定着是否扩容。threshold=Length*loadFactor，Length表示table数组的长度（默认值为16），loadFactor为负载因子（默认值为0.75）；阀值threshold表示当table数组中存储的元素个数超过该阀值时，即需要扩容；如数组默认长度为16，负载因子默认0.75，此时threshold=16*0.75=12，即当table数组中存储的元素个数超过12个时，table数组就该进行扩容了。</p>
+
+<p>HashMap的扩容使用新的数组代替旧数组，然后将旧数组中的元素重新计算索引位置并放到新数组中，对旧数组中的元素如何重新映射到新数组中？由于HashMap扩容时使用的是2的幂次方扩展的，即数组长度扩大为原来的2倍、4倍、8倍、16倍&hellip;，因此在扩容时（Length-1）这部分就相当于在高位新增一个或多个1位（bit）；如下图12，HashMap扩大为原数组的两倍为例。</p>
+
+<p><strong>图12. HashMap的哈希算法数组扩容</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190819110031387-1087644827.png" alt="img" /></p>
+
+<p>如上图12所示，（a）为扩容前，key1和key2两个key确定索引的位置；（b）为扩容后，key1和key2两个key确定索引的位置；hash1和hash2分别是key1与key2对应的哈希“与高位运算”结果。</p>
+
+<p>(a)中数组的高位bit为“1111”，1*20 + 1*21 + 1*22 + 1*23 = 15，而 n-1 =15，所以扩容前table的长度n为16；</p>
+
+<p>(b)中n扩大为原来的两倍，其数组大小的高位bit为“1 1111”，1*20 + 1*21 + 1*22 + 1*23 + 1*24 = 15+16=31，而 n-1=31，所以扩容后table的长度n为32；</p>
+
+<p>(a)中的n为16，(b)中扩大两倍n为32，相当于(n-1)这部分的高位多了一个1，然后和原hash码作与操作，最后元素在新数组中映射的位置要么不变，要么向后移动16个位置，如下图13所示。</p>
+
+<p><strong>图13. HashMap中数组扩容两倍后位置的变化</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190819145337394-1267745136.png" alt="img" /></p>
+
+<table>
+<thead>
+<tr>
+<th>KEY</th>
+<th>hash</th>
+<th>原数组高位bit</th>
+<th>原下标</th>
+<th>新数组高位bit</th>
+<th>新下标</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>key1</td>
+<td>0 0101</td>
+<td>1111</td>
+<td>0 0101</td>
+<td>1 1111</td>
+<td>0 0101 = 1*20+0*21+1*22+0*23+0*24= 5</td>
+</tr>
+
+<tr>
+<td>key2</td>
+<td>1 0101</td>
+<td>1111</td>
+<td>0 0101</td>
+<td>1 1111</td>
+<td>1 0101 = 1*20 + 0*21 + 1*22 + 0*23+0*24= 5+16</td>
+</tr>
+</tbody>
+</table>
+
+<p>因此，我们在扩充HashMap，复制数组元素及确定索引位置时不需要重新计算hash值，只需要判断原来的hash值新增的那个bit是1，还是0；若为0，则索引未改变；若为1，则索引变为“原索引+oldCap”；如图14，HashMap中数组从16扩容为32的resize图。</p>
+
+<p><strong>图14. HashMap中数组16扩容至32</strong></p>
+
+<p><img src="https://imgedu.lagou.com/1580332-20190819164716063-329231265.png" alt="img" /></p>
+
+<p>这样设计有如下几点好处：</p>
+
+<p>\1. 省去了重新计算hash值的时间(由于位运算直接对内存数据进行操作，不需要转成十进制，因此处理速度非常快)，只需判断新增的一位是0或1；</p>
+
+<p>\2. 由于新增的1位可以认为是随机的0或1，因此扩容过程中会均匀的把之前有冲突的节点分散到新的位置(bucket槽)，并且位置的先后顺序不会颠倒；</p>
+
+<p>\3. JDK1.7中扩容时，旧链表迁移到新链表的时候，若出现在新链表的数组索引位置相同情况，则链表元素会倒置，但从图14中看出JKD1.8的扩容并不会颠倒相同索引的链表元素。</p>
+
+<p><strong><em>HashMap扩容resize函数：</em></strong></p>
+
+<pre><code class="language-java"> 1    /**
+  2      * Initializes or doubles table size.  If null, allocates in
+  3      * accord with initial capacity target held in field threshold.
+  4      * Otherwise, because we are using power-of-two expansion, the
+  5      * elements from each bin must either stay at same index, or move
+  6      * with a power of two offset in the new table.
+  7      *
+  8      * @return the table
+  9      */
+ 10     final Node&lt;K,V&gt;[] resize() {
+ 11         Node&lt;K,V&gt;[] oldTab = table;
+ 12         int oldCap = (oldTab == null) ? 0 : oldTab.length;
+ 13         int oldThr = threshold;
+ 14         int newCap, newThr = 0;
+ 15         //当哈希桶不为空时，扩容走该支路A
+ 16         if (oldCap &gt; 0) {
+ 17              //若容量超过最大值，则无法进行扩容，需扩大阀值
+ 18             if (oldCap &gt;= MAXIMUM_CAPACITY) {
+ 19                 threshold = Integer.MAX_VALUE;
+ 20                 return oldTab;
+ 21             }
+ 22             //若哈希桶扩容为原来的2倍，阀值也变为原来的两倍
+ 23             else if ((newCap = oldCap &lt;&lt; 1) &lt; MAXIMUM_CAPACITY &amp;&amp;
+ 24                      oldCap &gt;= DEFAULT_INITIAL_CAPACITY)
+ 25                 newThr = oldThr &lt;&lt; 1; // double threshold
+ 26         }
+ 27         //当调用非空函数时，走此分支B
+ 28         else if (oldThr &gt; 0) // initial capacity was placed in threshold
+ 29             newCap = oldThr;
+ 30         //调用空的构造函数时走此分支C，使用默认大小和阀值初始化哈希桶
+ 31         else {               // zero initial threshold signifies using defaults
+ 32             newCap = DEFAULT_INITIAL_CAPACITY;
+ 33             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
+ 34         }
+ 35         //int newCap, newThr = 0; 当走分支B时 newThr 为0
+ 36         if (newThr == 0) {
+ 37             float ft = (float)newCap * loadFactor;
+ 38              //走分支B调用的是非空函数，直接把容量大小赋值给阀值，需要计算新的阀值threshold
+ 39             newThr = (newCap &lt; MAXIMUM_CAPACITY &amp;&amp; ft &lt; (float)MAXIMUM_CAPACITY ?
+ 40                       (int)ft : Integer.MAX_VALUE);
+ 41         }
+ 42         threshold = newThr;
+ 43         @SuppressWarnings({&quot;rawtypes&quot;,&quot;unchecked&quot;})
+ 44             //new一个新的哈希桶
+ 45             Node&lt;K,V&gt;[] newTab = (Node&lt;K,V&gt;[])new Node[newCap];
+ 46         table = newTab;
+ 47          //扩容分支
+ 48         if (oldTab != null) {
+ 49             //for循环把oldTab中的每个节点node，reHash操作并移动到新的数组newTab中
+ 50             for (int j = 0; j &lt; oldCap; ++j) {
+ 51                 Node&lt;K,V&gt; e;
+ 52                 if ((e = oldTab[j]) != null) {
+ 53                     oldTab[j] = null;
+ 54                      //e.next == null，若是单个节点，即没有后继next节点，则直接在newTab在进行重定位
+ 55                     if (e.next == null)
+ 56                         newTab[e.hash &amp; (newCap - 1)] = e;
+ 57                     //若节点为TreeNode，则需要进行红黑树的rehash操作
+ 58                     else if (e instanceof TreeNode)
+ 59                         ((TreeNode&lt;K,V&gt;)e).split(this, newTab, j, oldCap);
+ 60                     //else则节点为链表，需进行链表的rehash操作，链表重组并保持原有顺序
+ 61                     else { // preserve order
+ 62                         Node&lt;K,V&gt; loHead = null, loTail = null;
+ 63                         Node&lt;K,V&gt; hiHead = null, hiTail = null;
+ 64                         Node&lt;K,V&gt; next;
+ 65                         do {
+ 66                             next = e.next;
+ 67                             //通过与位运算&amp;，判断rehash后节点位置是否发生改变
+ 68                             //(e.hash &amp; oldCap) == 0，则为原位置
+ 69                             if ((e.hash &amp; oldCap) == 0) {
+ 70                                 if (loTail == null)
+ 71                                     //loHead 指向新的 hash 在原位置的头节点
+ 72                                     loHead = e;
+ 73                                 else
+ 74                                     //loTail 指向新的 hash 在原位置的尾节点
+ 75                                     loTail.next = e;
+ 76                                 loTail = e;
+ 77                             }
+ 78                             //else则rehash后节点位置变为：原位置+oldCap位置
+ 79                             else {
+ 80                                 if (hiTail == null)
+ 81                                     //hiHead 指向新的 hash 在原位置 + oldCap 位置的头节点
+ 82                                     hiHead = e;
+ 83                                 else
+ 84                                     // hiTail 指向新的 hash 在原位置 + oldCap 位置的尾节点
+ 85                                     hiTail.next = e;
+ 86                                 hiTail = e;
+ 87                             }
+ 88                         } while ((e = next) != null);
+ 89                          //loTail非null，新的hash在原位置的头节点放入哈希桶
+ 90                         if (loTail != null) {
+ 91                             loTail.next = null;
+ 92                             newTab[j] = loHead;
+ 93                         }
+ 94                         //hiTail非null，新的hash在 原位置+oldCap位置 的头节点放入哈希桶
+ 95                         if (hiTail != null) {
+ 96                             hiTail.next = null;
+ 97                             // rehash　后节点新的位置一定为原位置加上　oldCap
+ 98                             newTab[j + oldCap] = hiHead;
+ 99                         }
+100                     }
+101                 }
+102             }
+103         }
+104         return newTab;
+105     }
+</code></pre>
+
+<p><strong><em>HashMap对红黑树进行rehash操作的split函数：</em></strong></p>
+
+<pre><code class="language-java">1        /**
+ 2          * Splits nodes in a tree bin into lower and upper tree bins,
+ 3          * or untreeifies if now too small. Called only from resize;
+ 4          * see above discussion about split bits and indices.
+ 5          *
+ 6          * @param map the map
+ 7          * @param tab the table for recording bin heads
+ 8          * @param index the index of the table being split
+ 9          * @param bit the bit of hash to split on
+10          */
+11         final void split(HashMap&lt;K,V&gt; map, Node&lt;K,V&gt;[] tab, int index, int bit) {
+12             TreeNode&lt;K,V&gt; b = this;
+13                  /**
+14                     * loHead 指向新的 hash 在原位置的头节点
+15                     * loTail 指向新的 hash 在原位置的尾节点
+16                     * hiHead 指向新的 hash 在原位置 + oldCap 位置的头节点
+17                     * hiTail 指向新的 hash 在原位置 + oldCap 位置的尾节点
+18                     */
+19             // Relink into lo and hi lists, preserving order
+20             TreeNode&lt;K,V&gt; loHead = null, loTail = null;
+21             TreeNode&lt;K,V&gt; hiHead = null, hiTail = null;
+22             int lc = 0, hc = 0;
+23             //由于TreeNode节点之间存在着双端链表的关系，可利用链表关系进行rehash
+24             for (TreeNode&lt;K,V&gt; e = b, next; e != null; e = next) {
+25                 next = (TreeNode&lt;K,V&gt;)e.next;
+26                 e.next = null;
+27                  //原位置
+28                 if ((e.hash &amp; bit) == 0) {
+29                     if ((e.prev = loTail) == null)
+30                         loHead = e;
+31                     else
+32                         loTail.next = e;
+33                     loTail = e;
+34                     ++lc;
+35                 }
+36                 //else则为原位置 + oldCap
+37                 else {
+38                     if ((e.prev = hiTail) == null)
+39                         hiHead = e;
+40                     else
+41                         hiTail.next = e;
+42                     hiTail = e;
+43                     ++hc;
+44                 }
+45             }
+46             //rehash操作后，根据链表长度进行untreeify解除树形化或treeify树形化操作
+47             if (loHead != null) {
+48                 //当链表的节点个数小于等于解除树形化阀值UNTREEIFY_THRESHOLD时，将红黑树转为普通链表
+49                 if (lc &lt;= UNTREEIFY_THRESHOLD)
+50                     tab[index] = loHead.untreeify(map);
+51                 else {
+52                     //新的hash在原位置的头节点放入哈希桶
+53                     tab[index] = loHead;
+54                     if (hiHead != null) // (else is already treeified)
+55                         loHead.treeify(tab);
+56                 }
+57             }
+58             if (hiHead != null) {
+59                 //当链表的节点个数小于等于解除树形化阀值UNTREEIFY_THRESHOLD时，将红黑树转为普通链表
+60                 if (hc &lt;= UNTREEIFY_THRESHOLD)
+61                     tab[index + bit] = hiHead.untreeify(map);
+62                 else {
+63                     //新的hash在原位置 + oldCap位置的头节点放入哈希桶
+64                     tab[index + bit] = hiHead;
+65                     if (loHead != null)
+66                         hiHead.treeify(tab);
+67                 }
+68             }
+69         }
+</code></pre>
+
+<p><strong><em>九、总结</em></strong></p>
+
+<p>\1. HashMap的哈希桶初始长度Length默认为16，负载因子默loadFactor认值为0.75，threshold阀值是HashMap能容纳的最大数据量的Node节点个数，threshold=Length*loadFactor。</p>
+
+<p>\2. 当HashMap中存储的元素个数超过了threshold阀值时，则会进行reseize扩容操作，扩容后的数组容量为之前的两倍；但扩容是个特别消耗性能的操作，So当我们在使用HashMap的时候，可以估算下Map的大小，在初始化时指定一个大致的数值，这样可以减少Map频繁扩容的次数。</p>
+
+<p>\3. HashMap中实际存储的键值对的数量通过size表示，table数组的长度为Length。</p>
+
+<p>\4. modCount是用来记录HashMap内部结构发生变化的次数，put方法覆盖HashMap中的某个key对应的value不属于结构变化。</p>
+
+<p>\5. HashMap哈希桶的大小必须为2的幂次方。</p>
+
+<p>\6. JDK1.8引入红黑树操作，大幅度优化了HashMap的性能。</p>
+
+<p>\7. HashMap是非线程安全的，在并发环境中同时操作HashMap时最好使用线程安全的ConcurrentHashMap。</p>
+
+  </section>
+  <footer>
+    
+    
+    
+    <section class="author-info row">
+      <div class="author-avatar col-md-2">
+        
+      </div>
+      <div class="author-meta col-md-6">
+        
+        
+      </div>
+      
+    </section>
+    <ul class="pager">
+      
+      <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Older</a></li>
+      
+      
+      <li class="next"><a href="https://ly19911114.github.io/post/springcloud%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/">Newer <span aria-hidden="true">&rarr;</span></a></li>
+      
+    </ul>
+  </footer>
+</article>
+
+  </main>
+  <footer class="container global-footer">
+    <div class="copyright-note pull-left">
+      
+    </div>
+    <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <script src="https://ly19911114.github.io/js/highlight.pack.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+  
+  
+</body>
+</html>
+
