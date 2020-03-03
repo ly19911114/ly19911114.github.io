@@ -6,10 +6,58 @@
     <description>Recent content on Welcome to the mysterious world</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 03 Mar 2020 00:00:38 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 03 Mar 2020 22:40:40 +0800</lastBuildDate>
     
 	<atom:link href="https://ly19911114.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>如何避免重复消费</title>
+      <link>https://ly19911114.github.io/post/%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E9%87%8D%E5%A4%8D%E6%B6%88%E8%B4%B9/</link>
+      <pubDate>Tue, 03 Mar 2020 22:40:40 +0800</pubDate>
+      
+      <guid>https://ly19911114.github.io/post/%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E9%87%8D%E5%A4%8D%E6%B6%88%E8%B4%B9/</guid>
+      <description>回答这个问题，首先你别听到重复消息这个事儿，就一无所知吧，你先大概说一说可能会有哪些重复消费的问题。
+首先，比如 RabbitMQ、RocketMQ、Kafka，都有可能会出现消息重复消费的问题，正常。因为这问题通常不是 MQ 自己保证的，是由我们开发来保证的。挑一个 Kafka 来举个例子，说说怎么重复消费吧。
+Kafka 实际上有个 offset 的概念，就是每个消息写进去，都有一个 offset，代表消息的序号，然后 consumer 消费了数据之后，每隔一段时间（定时定期），会把自己消费过的消息的 offset 提交一下，表示“我已经消费过了，下次我要是重启啥的，你就让我继续从上次消费到的 offset 来继续消费吧”。
+但是凡事总有意外，比如我们之前生产经常遇到的，就是你有时候重启系统，看你怎么重启了，如果碰到点着急的，直接 kill 进程了，再重启。这会导致 consumer 有些消息处理了，但是没来得及提交 offset，尴尬了。重启之后，少数消息会再次消费一次。(右边的生产者为消费者)
+image.png
+举个栗子。
+有这么个场景。数据 1/2/3 依次进入 kafka，kafka 会给这三条数据每条分配一个 offset，代表这条数据的序号，分配的 offset 依次是 152/153/154。消费者从 kafka 去消费的时候，也是按照这个顺序去消费。假如当消费者消费了 offset=153 的这条数据，刚准备去提交 offset 到 zookeeper，此时消费者进程被重启了。那么此时消费过的数据 1&amp;frasl;2 的 offset 并没有提交，kafka 也就不知道你已经消费了 offset=153 这条数据。那么重启之后，消费者会找 kafka 说，嘿，哥儿们，你给我接着把上次我消费到的那个地方后面的数据继续给我传递过来。数据 1&amp;frasl;2 再次被消费。
+如果消费者干的事儿是拿一条数据就往数据库里写一条，会导致说，你可能就把数据 1&amp;frasl;2 在数据库里插入了 2 次，那么数据就错啦。
+其实重复消费不可怕，可怕的是你没考虑到重复消费之后，怎么保证幂等性。
+举个例子吧。假设你有个系统，消费一条消息就往数据库里插入一条数据，要是你一个消息重复两次，你不就插入了两条，这数据不就错了？但是你要是消费到第二次的时候，自己判断一下是否已经消费过了，若是就直接扔了，这样不就保留了一条数据，从而保证了数据的正确性。
+一条数据重复出现两次，数据库里就只有一条数据，这就保证了系统的幂等性。
+幂等性，通俗点说，就一个数据，或者一个请求，给你重复来多次，你得确保对应的数据是不会改变的，不能出错。
+所以第二个问题来了，怎么保证消息队列消费的幂等性？
+其实还是得结合业务来思考，我这里给几个思路：
+ 比如你拿个数据要写库，你先根据主键查一下，如果这数据都有了，你就别插入了，update 一下好吧。 比如你是写 Redis，那没问题了，反正每次都是 set，天然幂等性。 比如你不是上面两个场景，那做的稍微复杂一点，你需要让生产者发送每条数据的时候，里面加一个全局唯一的 id，类似订单 id 之类的东西，然后你这里消费到了之后，先根据这个 id 去比如 Redis 里查一下，之前消费过吗？如果没有消费过，你就处理，然后这个 id 写 Redis。如果消费过了，那你就别处理了，保证别重复处理相同的消息即可。 比如基于数据库的唯一键来保证重复数据不会重复插入多条。因为有唯一键约束了，重复数据插入只会报错，不会导致数据库中出现脏数据。  image.</description>
+    </item>
+    
+    <item>
+      <title>String,StringBuilder,StringBuffer</title>
+      <link>https://ly19911114.github.io/post/stringstringbuilderstringbuffer/</link>
+      <pubDate>Tue, 03 Mar 2020 21:16:26 +0800</pubDate>
+      
+      <guid>https://ly19911114.github.io/post/stringstringbuilderstringbuffer/</guid>
+      <description>1.运行速度:StringBuilder &amp;gt;StringBuffer &amp;gt;String String为字符串常量，而StringBuilder和StringBuffer均为字符串变量，即String对象一旦创建之后该对象是不可更改的，但后两者的对象是变量，是可以更改的。Java中对String对象进行的操作实际上是一个不断创建新的对象并且将旧的对象回收的一个过程，所以执行速度很慢。而StringBuilder和StringBuffer的对象是变量，对变量进行操作就是直接对该对象进行更改，而不进行创建和回收的操作，所以速度要比String快很多。
+2.线程安全:StringBuilder是线程不安全的，而StringBuffer是线程安全的 如果一个StringBuffer对象在字符串缓冲区被多个线程使用时，StringBuffer中很多方法可以带有synchronized关键字，所以可以保证线程是安全的，但StringBuilder的方法则没有该关键字，所以不能保证线程安全，有可能会出现一些错误的操作。所以如果要进行的操作是多线程的，那么就要使用StringBuffer，但是在单线程的情况下，还是建议使用速度比较快的StringBuilder。
+3.使用场景 String：适用于少量的字符串操作的情况
+StringBuilder：适用于单线程下在字符缓冲区进行大量操作的情况
+StringBuffer：适用多线程下在字符缓冲区进行大量操作的情况
+String String类是不可变类，即一旦一个String对象被创建以后，包含在这个对象中的字符序列是不可改变的，直至这个对象被销毁。
+ 这个是String类的解释，之前小咸儿看到这个情况，不能理解上述的解释，如下
+String a = &amp;quot;123&amp;quot;; a = &amp;quot;456&amp;quot;; *// 打印出来的a为456* System.out.println(a)   看到这里，小咸儿不明白了，这不是明明已经对他进行修改了吗？为什么还说他是一个不可变类呢？
+ 经过小咸儿和小伙伴们的学习，明白String类不可变在哪里体现出来的，接下来就看一张上述a对象的内存存储空间图
+看到这里，小咸儿不明白了，这不是明明已经对他进行修改了吗？为什么还说他是一个不可变类呢？
+ 经过小咸儿和小伙伴们的学习，明白String类不可变在哪里体现出来的，接下来就看一张上述a对象的内存存储空间图 可以看出来，再次给a赋值时，并不是对原来堆中实例对象进行重新赋值，而是生成一个新的实例对象，并且指向“456”这个字符串，a则指向最新生成的实例对象，之前的实例对象仍然存在，如果没有被再次引用，则会被垃圾回收。
+StringBuffer StringBuffer对象则代表一个字符序列可变的字符串，当一个StringBuffer被创建以后，通过StringBuffer提供的append()、insert()、reverse()、setCharAt()、setLength()等方法可以改变这个字符串对象的字符序列。一旦通过StringBuffer生成了最终想要的字符串，就可以调用它的toString()方法将其转换为一个String对象。
+StringBuffer b = new StringBuffer(&amp;quot;123&amp;quot;); b.append(&amp;quot;456&amp;quot;); // b打印结果为：123456 System.out.println(b);  在看一下b对象的内存空间图： 所以说StringBuffer对象是一个字符序列可变的字符串，它没有重新生成一个对象，而且在原来的对象中可以连接新的字符串。
+StringBuilder StringBuilder类也代表可变字符串对象。实际上，StringBuilder和StringBuffer基本相似，两个类的构造器和方法也基本相同。不同的是：StringBuffer是线程安全的，而StringBuilder则没有实现线程安全功能，所以性能略高。
+StringBuffer是如何实现线程安全的呢？ StringBuffer类中实现的方法： StringBuilder类中实现的方法：
+由此可见，StringBuffer类中的方法都添加了synchronized关键字，也就是给这个方法添加了一个锁，用来保证线程安全。
+Java9的改进 Java9改进了字符串（包括String、StringBuffer、StringBuilder）的实现。在Java9以前字符串采用char[]数组来保存字符，因此字符串的每个字符占2字节；而Java9的字符串采用byte[]数组再加一个encoding-flag字段来保存字符，因此字符串的每个字符只占1字节。所以Java9的字符串更加节省空间，字符串的功能方法也没有受到影响。</description>
+    </item>
     
     <item>
       <title>Hash底层实现原理</title>

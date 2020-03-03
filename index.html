@@ -63,6 +63,86 @@
   
   <article>
   <header>
+    <h2><a href="https://ly19911114.github.io/post/%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E9%87%8D%E5%A4%8D%E6%B6%88%E8%B4%B9/">如何避免重复消费</a></h2>
+    <div class="post-meta clearfix">
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-03-03T22:40:40&#43;08:00">
+          Mar 3, 2020
+        </time>
+      </div>
+    </div>
+  </header>
+  <div>
+    回答这个问题，首先你别听到重复消息这个事儿，就一无所知吧，你先大概说一说可能会有哪些重复消费的问题。
+首先，比如 RabbitMQ、RocketMQ、Kafka，都有可能会出现消息重复消费的问题，正常。因为这问题通常不是 MQ 自己保证的，是由我们开发来保证的。挑一个 Kafka 来举个例子，说说怎么重复消费吧。
+Kafka 实际上有个 offset 的概念，就是每个消息写进去，都有一个 offset，代表消息的序号，然后 consumer 消费了数据之后，每隔一段时间（定时定期），会把自己消费过的消息的 offset 提交一下，表示“我已经消费过了，下次我要是重启啥的，你就让我继续从上次消费到的 offset 来继续消费吧”。
+但是凡事总有意外，比如我们之前生产经常遇到的，就是你有时候重启系统，看你怎么重启了，如果碰到点着急的，直接 kill 进程了，再重启。这会导致 consumer 有些消息处理了，但是没来得及提交 offset，尴尬了。重启之后，少数消息会再次消费一次。(右边的生产者为消费者)
+image.png
+举个栗子。
+有这么个场景。数据 1/2/3 依次进入 kafka，kafka 会给这三条数据每条分配一个 offset，代表这条数据的序号，分配的 offset 依次是 152/153/154。消费者从 kafka 去消费的时候，也是按照这个顺序去消费。假如当消费者消费了 offset=153 的这条数据，刚准备去提交 offset 到 zookeeper，此时消费者进程被重启了。那么此时消费过的数据 1&frasl;2 的 offset 并没有提交，kafka 也就不知道你已经消费了 offset=153 这条数据。那么重启之后，消费者会找 kafka 说，嘿，哥儿们，你给我接着把上次我消费到的那个地方后面的数据继续给我传递过来。数据 1&frasl;2 再次被消费。
+如果消费者干的事儿是拿一条数据就往数据库里写一条，会导致说，你可能就把数据 1&frasl;2 在数据库里插入了 2 次，那么数据就错啦。
+其实重复消费不可怕，可怕的是你没考虑到重复消费之后，怎么保证幂等性。
+举个例子吧。假设你有个系统，消费一条消息就往数据库里插入一条数据，要是你一个消息重复两次，你不就插入了两条，这数据不就错了？但是你要是消费到第二次的时候，自己判断一下是否已经消费过了，若是就直接扔了，这样不就保留了一条数据，从而保证了数据的正确性。
+一条数据重复出现两次，数据库里就只有一条数据，这就保证了系统的幂等性。
+幂等性，通俗点说，就一个数据，或者一个请求，给你重复来多次，你得确保对应的数据是不会改变的，不能出错。
+所以第二个问题来了，怎么保证消息队列消费的幂等性？
+其实还是得结合业务来思考，我这里给几个思路：
+ 比如你拿个数据要写库，你先根据主键查一下，如果这数据都有了，你就别插入了，update 一下好吧。 比如你是写 Redis，那没问题了，反正每次都是 set，天然幂等性。 比如你不是上面两个场景，那做的稍微复杂一点，你需要让生产者发送每条数据的时候，里面加一个全局唯一的 id，类似订单 id 之类的东西，然后你这里消费到了之后，先根据这个 id 去比如 Redis 里查一下，之前消费过吗？如果没有消费过，你就处理，然后这个 id 写 Redis。如果消费过了，那你就别处理了，保证别重复处理相同的消息即可。 比如基于数据库的唯一键来保证重复数据不会重复插入多条。因为有唯一键约束了，重复数据插入只会报错，不会导致数据库中出现脏数据。  image.
+  </div>
+  
+  <footer>
+    <ul class="pager">
+      <li class="next"><a href="https://ly19911114.github.io/post/%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E9%87%8D%E5%A4%8D%E6%B6%88%E8%B4%B9/">Read more <span aria-hidden="true">&raquo;</span></a></li>
+    </ul>
+  </footer>
+  
+</article>
+
+  
+  
+  <hr/>
+  
+  <article>
+  <header>
+    <h2><a href="https://ly19911114.github.io/post/stringstringbuilderstringbuffer/">String,StringBuilder,StringBuffer</a></h2>
+    <div class="post-meta clearfix">
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-03-03T21:16:26&#43;08:00">
+          Mar 3, 2020
+        </time>
+      </div>
+    </div>
+  </header>
+  <div>
+    1.运行速度:StringBuilder &gt;StringBuffer &gt;String String为字符串常量，而StringBuilder和StringBuffer均为字符串变量，即String对象一旦创建之后该对象是不可更改的，但后两者的对象是变量，是可以更改的。Java中对String对象进行的操作实际上是一个不断创建新的对象并且将旧的对象回收的一个过程，所以执行速度很慢。而StringBuilder和StringBuffer的对象是变量，对变量进行操作就是直接对该对象进行更改，而不进行创建和回收的操作，所以速度要比String快很多。
+2.线程安全:StringBuilder是线程不安全的，而StringBuffer是线程安全的 如果一个StringBuffer对象在字符串缓冲区被多个线程使用时，StringBuffer中很多方法可以带有synchronized关键字，所以可以保证线程是安全的，但StringBuilder的方法则没有该关键字，所以不能保证线程安全，有可能会出现一些错误的操作。所以如果要进行的操作是多线程的，那么就要使用StringBuffer，但是在单线程的情况下，还是建议使用速度比较快的StringBuilder。
+3.使用场景 String：适用于少量的字符串操作的情况
+StringBuilder：适用于单线程下在字符缓冲区进行大量操作的情况
+StringBuffer：适用多线程下在字符缓冲区进行大量操作的情况
+String String类是不可变类，即一旦一个String对象被创建以后，包含在这个对象中的字符序列是不可改变的，直至这个对象被销毁。
+ 这个是String类的解释，之前小咸儿看到这个情况，不能理解上述的解释，如下
+String a = &quot;123&quot;; a = &quot;456&quot;; *// 打印出来的a为456* System.out.println(a)   看到这里，小咸儿不明白了，这不是明明已经对他进行修改了吗？为什么还说他是一个不可变类呢？
+ 经过小咸儿和小伙伴们的学习，明白String类不可变在哪里体现出来的，接下来就看一张上述a对象的内存存储空间图
+看到这里，小咸儿不明白了，这不是明明已经对他进行修改了吗？为什么还说他是一个不可变类呢？
+ 经过小咸儿和小伙伴们的学习，明白String类不可变在哪里体现出来的，接下来就看一张上述a对象的内存存储空间图 可以看出来，再次给a赋值时，并不是对原来堆中实例对象进行重新赋值，而是生成一个新的实例对象，并且指向“456”这个字符串，a则指向最新生成的实例对象，之前的实例对象仍然存在，如果没有被再次引用，则会被垃圾回收。
+StringBuffer StringBuffer对象则代表一个字符序列可变的字符串，当一个StringBuffer被创建以后，通过StringBuffer提供的append()、insert()、reverse()、setCharAt()、setLength()等方法可以改变这个字符串对象的字符序列。一旦通过StringBuffer生成了最终想要的字符串，就可以调用它的toString()方法将其转换为一个String对象。
+StringBuffer b = new StringBuffer(&quot;123&quot;); b.append(&quot;456&quot;); // b打印结果为：123456 System.out.println(b);  在看一下b对象的内存空间图： 所以说StringBuffer对象是一个字符序列可变的字符串，它没有重新生成一个对象，而且在原来的对象中可以连接新的字符串。
+StringBuilder StringBuilder类也代表可变字符串对象。实际上，StringBuilder和StringBuffer基本相似，两个类的构造器和方法也基本相同。不同的是：StringBuffer是线程安全的，而StringBuilder则没有实现线程安全功能，所以性能略高。
+StringBuffer是如何实现线程安全的呢？ StringBuffer类中实现的方法： StringBuilder类中实现的方法：
+由此可见，StringBuffer类中的方法都添加了synchronized关键字，也就是给这个方法添加了一个锁，用来保证线程安全。
+Java9的改进 Java9改进了字符串（包括String、StringBuffer、StringBuilder）的实现。在Java9以前字符串采用char[]数组来保存字符，因此字符串的每个字符占2字节；而Java9的字符串采用byte[]数组再加一个encoding-flag字段来保存字符，因此字符串的每个字符只占1字节。所以Java9的字符串更加节省空间，字符串的功能方法也没有受到影响。
+  </div>
+  
+</article>
+
+  
+  
+  <hr/>
+  
+  <article>
+  <header>
     <h2><a href="https://ly19911114.github.io/post/hash%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/">Hash底层实现原理</a></h2>
     <div class="post-meta clearfix">
       <div class="post-date pull-left">
@@ -348,87 +428,6 @@ package com.jeehome.micro.warehouse.config; import com.jeehome.micro.warehouse.e
 通过上面方式，修改分支合并时的配置页如下： 点击OK，解决合并时的冲突。运行无异常后，提交合并后的文件至SVN即可。
 2. 将主干的改动合并到分支： 首先在Android Studio中打开分支项目，从SVN更新代码，保证分支对应的本地代码是最新的。 从主干合并至分支时的其他过程与上述合并过程基本一致，只需将合并配置页的Source 1和Source 2对应的分支路径进行调换，Source 1（即：分支路径）对应的Revision选择创建该分支时，该操作所对应的Revision即可。 点击OK，解决合并时的冲突。运行无异常后，提交合并后的文件至SVN即可。
 （注意，将分支合并到主干上后，svn show log日志上是没有日志记录的，只有再次点击提交主干代码后，才会有日志记录哈~）
-  </div>
-  
-</article>
-
-  
-  
-  <hr/>
-  
-  <article>
-  <header>
-    <h2><a href="https://ly19911114.github.io/post/list%E9%9B%86%E5%90%88%E5%8E%BB%E9%99%A4%E9%87%8D%E5%A4%8D%E5%AF%B9%E8%B1%A1/">List集合去除重复对象</a></h2>
-    <div class="post-meta clearfix">
-      <div class="post-date pull-left">
-        Posted on
-        <time datetime="2019-12-30T10:18:24&#43;08:00">
-          Dec 30, 2019
-        </time>
-      </div>
-    </div>
-  </header>
-  <div>
-    引言
-最近公司的中间件的中转后台中需要用到List集合去除重复对象这一技术点，下面，由浅入深的进行讲解开展。
-再分析代码之前，先来了解下equal和hashcode，因为要去除List重复对象，需要在实体类中重写这两个方法，先来了解这两个方法，更有助于理解代码。
-Now,Let is go(Let is 懒的缩写了，这不重要！！)
-内容比较冗长，还请耐心看完。
-一、项目中为何要重写equals和hashcode方法。 equals()方法在object类中定义如下：
-public boolean equals(Object obj) { return (this == obj); }  很明显是对两个对象的地址值进行的比较（即比较引用是否相同）。但是我们知道，String 、Math、Integer、Double等这些封装类在使用equals()方法时，已经覆盖了object类的equals()方法。
-hashcode()方法在object类中的定义如下：
-public native int hashCode();  hashCode()方法给对象返回一个hash code值。这个方法被用于hash tables，例如HashMap。
-它的性质是：
-在一个Java应用的执行期间，如果一个对象提供给equals做比较的信息没有被修改的话，该对象多次调用hashCode()方法，该方法必须始终如一返回同一个integer。
-如果两个对象根据equals(Object)方法是相等的，那么调用二者各自的hashCode()方法必须产生同一个integer结果。
-并不要求根据equals(java.lang.Object)方法不相等的两个对象，调用二者各自的hashCode()方法必须产生不同的integer结果。然而，程序员应该意识到对于不同的对象产生不同的integer结果，有可能会提高hash table的性能。
-大量的实践表明，由Object类定义的hashCode()方法对于不同的对象返回不同的integer。
-hashCode()方法和equal()方法的作用其实一样，在Java里都是用来对比两个对象是否相等一致，那么equal()既然已经能实现对比的功能了，为什么还要hashCode()呢？
-​ 因为重写的equal（）里一般比较的比较全面比较复杂，这样效率就比较低，而利用hashCode()进行对比，则只要生成一个hash值进行比较就可以了，效率很高，那么hashCode()既然效率这么高为什么还要equal()呢？
-​ 因为hashCode()并不是完全可靠，有时候不同的对象他们生成的hashcode也会一样（生成hash值得公式可能存在的问题），所以hashCode()只能说是大部分时候可靠，并不是绝对可靠，所以我们可以得出：
-​ 1.equal()相等的两个对象他们的hashCode()肯定相等，也就是用equal()对比是绝对可靠的。
-​ 2.hashCode()相等的两个对象他们的equal()不一定相等，也就是hashCode()不是绝对可靠的。
-​ 所有对于需要大量并且快速的对比的话如果都用equal()去做显然效率太低，所以解决方式是，每当需要对比的时候，首先用hashCode()去对比，如果hashCode()不一样，则表示这两个对象肯定不相等（也就是不必再用equal()去再对比了）,如果hashCode()相同，此时再对比他们的equal()，如果equal()也相同，则表示这两个对象是真的相同了，这样既能大大提高了效率也保证了对比的绝对正确性！
-然而hashCode()和equal()一样都是基本类Object里的方法，而和equal()一样，Object里hashCode()里面只是返回当前对象的地址，如果是这样的话，那么我们相同的一个类，new两个对象，由于他们在内存里的地址不同，则他们的hashCode（）不同，所以这显然不是我们想要的，所以我们必须重写我们类的hashCode()方法，即一个类，在hashCode()里面返回唯一的一个hash值。
-综上所述，在实际项目中，根据也无需求，必须要重写equals和hashcode方法。
-二、如何进行List对象的去除操作 首先要在实体类中重写equals()和hashcode()方法，至于为什么要重新，请参考标题一，下面是项目中 RfidGoodsResponse实体类的实际代码：
-public class RfidGoodsResponse { private String goodsName; private int goodsNum; private Integer goodsId; public Integer getGoodsId() { return goodsId; } public void setGoodsId(Integer goodsId) { this.
-  </div>
-  
-  <footer>
-    <ul class="pager">
-      <li class="next"><a href="https://ly19911114.github.io/post/list%E9%9B%86%E5%90%88%E5%8E%BB%E9%99%A4%E9%87%8D%E5%A4%8D%E5%AF%B9%E8%B1%A1/">Read more <span aria-hidden="true">&raquo;</span></a></li>
-    </ul>
-  </footer>
-  
-</article>
-
-  
-  
-  <hr/>
-  
-  <article>
-  <header>
-    <h2><a href="https://ly19911114.github.io/post/springboot%E4%B8%AD%E7%9A%84configuration%E6%B3%A8%E8%A7%A3%E5%92%8Cbean%E6%B3%A8%E8%A7%A3/">SpringBoot中的@Configuration注解和@Bean注解</a></h2>
-    <div class="post-meta clearfix">
-      <div class="post-date pull-left">
-        Posted on
-        <time datetime="2019-12-23T23:38:03&#43;08:00">
-          Dec 23, 2019
-        </time>
-      </div>
-    </div>
-  </header>
-  <div>
-    @Configuration
-1.@Configuration注解底层是含有@Component ，所以@Configuration 具有和 @Component 的作用。
-2.@Configuration注解相当于spring的xml配置文件中标签，里面可以配置bean。
-&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt; &lt;!--实例化一个Person对象--&gt; &lt;bean id=&quot;person&quot; class=&quot;com.sff.app.bean.Person&quot;/&gt; &lt;/beans&gt;  那么@Configuration注解就相当于我们的spring-bean.xml文件中的&hellip;&hellip;，它可以这样使用。
-/** * 配置类等价于spring-bean.xml文件 */ @Configuration public class AppConfig { }  @Bean
-1.@Bean注解相当于spring的xml配置文件标签，告诉容器注入一个bean。
-2.@Bean注解的方法上如果没通过bean指定实例名，默认实例名与方法名相同。
-3.@Bean注解默认为单例模式，可以通过@Scope(&ldquo;prototype&rdquo;)设置为多例。
-/** * 配置类等价于spring-bean.xml文件 */ @Configuration public class AppConfig { /*给容器中注册一个bean,类型是方法返回值，id就是方法名称*/ @Bean public Person person() { return new Person(&quot;Kate&quot;, 12); } }  
   </div>
   
 </article>
