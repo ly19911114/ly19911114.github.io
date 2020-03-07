@@ -6,10 +6,38 @@
     <description>Recent content in Posts on Welcome to the mysterious world</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 03 Mar 2020 22:40:40 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 07 Mar 2020 15:08:23 +0800</lastBuildDate>
     
 	<atom:link href="https://ly19911114.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Java集合类线程安全问题以及解决办法</title>
+      <link>https://ly19911114.github.io/post/java%E9%9B%86%E5%90%88%E7%B1%BB%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98%E4%BB%A5%E5%8F%8A%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/</link>
+      <pubDate>Sat, 07 Mar 2020 15:08:23 +0800</pubDate>
+      
+      <guid>https://ly19911114.github.io/post/java%E9%9B%86%E5%90%88%E7%B1%BB%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98%E4%BB%A5%E5%8F%8A%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/</guid>
+      <description>一、List 1.1 模拟多线程环境 ​ 多线程环境下，会抛出 java.util.ConcurrentModificationException 异常
+public static void listNotSafe() { List&amp;lt;String&amp;gt; list = new ArrayList&amp;lt;&amp;gt;(); for (int i = 0; i &amp;lt; 30; i++) { new Thread(() -&amp;gt; { list.add(UUID.randomUUID().toString().substring(0, 8)); System.out.println(list); }).start(); } }  1.2 异常原因  多线程环境下，并发争抢修改导致出现该异常。  1.3 解决办法 // 1. 使用线程安全类 Vector new Vector(); // 2. 使用 Collections 工具类封装 ArrayList Collections.synchronizedList(new ArrayList&amp;lt;&amp;gt;()); // 3. 使用 java.util.concurrent.CopyOnWriteArrayList; new CopyOnWriteArrayList&amp;lt;&amp;gt;();  1.4 写时复制思想 CopyOnWrite 容器即写时复制的容器。往一个容器添加元素的时候，不直接往当前容器Object[]添加，而是先将当前容器Object[]进行Copy, 复制出一个新的容器Object[] newElements， 然后新的容器Object[] newElements 里添加元素，添加完元素之后，再将原容器的引用指向新的容器 setArray(newElements); 这样做的好处是可以对CopyOnWrite容器进行并发的读，而不需要加锁，因为当前容器不会添加任何元素。所以CopyOnWrite容器也是一种读写分离的思想，读和写不同的容器。  // CopyOnWriteArrayList.</description>
+    </item>
+    
+    <item>
+      <title>字符串常量池深入理解</title>
+      <link>https://ly19911114.github.io/post/%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%B8%B8%E9%87%8F%E6%B1%A0%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3/</link>
+      <pubDate>Sat, 07 Mar 2020 13:36:23 +0800</pubDate>
+      
+      <guid>https://ly19911114.github.io/post/%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%B8%B8%E9%87%8F%E6%B1%A0%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3/</guid>
+      <description>一、概述 在分析字符串常量池之前，先来分析一下java的内存区域，然后再各种的情况分析一下各种情况下的情况；
+在《深入理解java虚拟机》这本书上是这样写的：对于HotSpot虚拟机，根据官方发布的路线图信息，现在也有放弃永久代并逐步的改为采用Native Memory来实现方法区的规划了，在目前已经发布的JDK1.7的HotSpot中，已经把原来存放在方法区中的字符串常量池移出。根据查阅的资料显示在JDK1.7以后的版本中字符串常量池移到堆内存区域；同时在jdk1.8中移除整个永久代，取而代之的是一个叫元空间（Metaspace）的区域
+在 JAVA 语言中有8中基本类型和一种比较特殊的类型String。这些类型为了使他们在运行过程中速度更快，更节省内存，都提供了一种常量池的概念。常量池就类似一个JAVA系统级别提供的缓存。
+8种基本类型的常量池都是系统协调的，String类型的常量池比较特殊。它的主要使用方法有两种：
+ 直接使用双引号声明出来的String对象会直接存储在常量池中。 如果不是用双引号声明的String对象，可以使用String提供的intern方法。intern 方法会从字符串常量池中查询当前字符串是否存在，若不存在就会将当前字符串放入常量池中  二、Java中两种创建字符串对象的方法的分析
+String s1 = &amp;quot;abc&amp;quot;; String s2 = &amp;quot;abc&amp;quot;; System.out.println(s1==s2);  结果是 true；
+采用字面值的方式创建一个字符串时，JVM首先会去字符串池中查找是否存在&amp;rdquo;abc&amp;rdquo;这个对象，如果不存在，则在字符串常量池中创建&amp;rdquo;abc&amp;rdquo;这个对象，然后将池中&amp;rdquo;abc&amp;rdquo;这个对象的引用地址返回给&amp;rdquo;abc&amp;rdquo;对象的引用s1，这样s1会指向字符串常量池中&amp;rdquo;abc&amp;rdquo;这个字符串对象；如果存在，则不创建任何对象，直接将池中&amp;rdquo;abc&amp;rdquo;这个对象的地址返回，赋给引用s2。因为s1、s2都是指向同一个字符串池中的&amp;rdquo;abc&amp;rdquo;对象，所以结果为true。
+String s3 = new String(&amp;quot;xyz&amp;quot;); String s4 = new String(&amp;quot;xyz&amp;quot;); System.out.println(s3==s4);  结果是 false
+采用new关键字新建一个字符串对象时，JVM首先在字符串池中查找有没有&amp;rdquo;xyz&amp;rdquo;这个字符串对象，如果有，则不在池中再去创建&amp;rdquo;xyz&amp;rdquo;这个对象了，直接在堆中创建一个&amp;rdquo;xyz&amp;rdquo;字符串对象，然后将堆中的这个&amp;rdquo;xyz&amp;rdquo;对象的地址返回赋给引用s3，这样，s3就指向了堆中创建的这个&amp;rdquo;xyz&amp;rdquo;字符串对象；如果没有，则首先在字符串池中创建一个&amp;rdquo;xyz&amp;rdquo;字符串对象，然后再在堆中创建一个&amp;rdquo;xyz&amp;rdquo;字符串对象，然后将堆中这个&amp;rdquo;xyz&amp;rdquo;字符串对象的地址返回赋给s3引用，这样，s3指向了堆中创建的这个&amp;rdquo;xyz&amp;rdquo;字符串对象。s4则指向了堆中创建的另一个&amp;rdquo;xyz&amp;rdquo;字符串对象。s3 、s4是两个指向不同对象的引用，结果当然是false。
+三、Intern的实现原理 /** * Returns a canonical representation for the string object. * &amp;lt;p&amp;gt; * A pool of strings, initially empty, is maintained privately by the * class {@code String}.</description>
+    </item>
     
     <item>
       <title>如何避免重复消费</title>
