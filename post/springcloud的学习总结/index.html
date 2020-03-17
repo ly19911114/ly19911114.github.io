@@ -89,7 +89,7 @@
 </code></pre>
 
 <p>​<br />
-        可用性（A）：负载过大后，集群整体是否还能响应客户端的读写请求。（服务一直可用，而且是正常响应时间）</p>
+​       可用性（A）：负载过大后，集群整体是否还能响应客户端的读写请求。（服务一直可用，而且是正常响应时间）</p>
 
 <pre><code>    分区容错性（P）：分区容忍性，就是高可用性，一个节点崩了，并不影响其它的节点（100个节点，挂了几个，不影响服务，越多机器越好）
 
@@ -116,7 +116,7 @@ public RestTemplate restTemplate() {
 
 <p>Map<String,Object> productMap = restTemplate.getForObject(&ldquo;<a href="http://product-service/api/v1/product/find?id=&quot;+productId">http://product-service/api/v1/product/find?id=&quot;+productId</a>, Map.class)&mdash;》获取到商品服务的信息</p>
 
-<pre><code>  package net.xdclass.order_service.service.impl;
+<pre><code class="language-java">  package net.xdclass.order_service.service.impl;
   
   import net.xdclass.order_service.domain.ProductOrder;
   import net.xdclass.order_service.service.ProductOrderService;
@@ -320,14 +320,13 @@ public class JsonUtils {
 </code></pre>
 
 <p>​<br />
-    3、熔断和降级互相交集
-        相同点：
-            1）从可用性和可靠性触发，为了防止系统崩溃
-            2）最终让用户体验到的是某些功能暂时不能用</p>
-
-<pre><code>    不同点
-        1）服务熔断一般是下游服务故障导致的，而服务降级一般是从整体系统负荷考虑，由调用方控制
-</code></pre>
+​   3、熔断和降级互相交集
+​       相同点：
+​           1）从可用性和可靠性触发，为了防止系统崩溃
+​           2）最终让用户体验到的是某些功能暂时不能用
+​<br />
+        不同点
+            1）服务熔断一般是下游服务故障导致的，而服务降级一般是从整体系统负荷考虑，由调用方控制</p>
 
 <h2 id="为什么要用">为什么要用？</h2>
 

@@ -63,6 +63,35 @@
   
   <article>
   <header>
+    <h2><a href="https://ly19911114.github.io/post/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%89%A7%E8%A1%8Cab%E4%BB%BB%E5%8A%A1%E7%9A%84%E7%AD%89%E5%BE%85%E5%90%8C%E6%AD%A5/">多线程执行AB任务的等待同步</a></h2>
+    <div class="post-meta clearfix">
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-03-18T00:24:04&#43;08:00">
+          Mar 18, 2020
+        </time>
+      </div>
+    </div>
+  </header>
+  <div>
+    内容描述： 在多线程中，有两个任务A与B，多线程执行任务A完成后再继续执行任务B，想到的两种方法一种线程间通信，使用条件变量方式，第二种就是使用CountDownLatch。
+条件变量 主要使用的条件变量，判断是否任务Ａ已经做完，然后再执行任务Ｂ  public class Main { public static boolean[] flag = new boolean[3]; public static boolean judge(boolean[] f) { for (int i = 0; i &lt; f.length; i++) { if (!f[i]) { return false; } } return true; } public static void main(String[] args) { for (int i = 0; i &lt; flag.length; i++) { flag[i] = false; } new Thread(new Runnable() { public void run() { while (true) { if (!
+  </div>
+  
+  <footer>
+    <ul class="pager">
+      <li class="next"><a href="https://ly19911114.github.io/post/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%89%A7%E8%A1%8Cab%E4%BB%BB%E5%8A%A1%E7%9A%84%E7%AD%89%E5%BE%85%E5%90%8C%E6%AD%A5/">Read more <span aria-hidden="true">&raquo;</span></a></li>
+    </ul>
+  </footer>
+  
+</article>
+
+  
+  
+  <hr/>
+  
+  <article>
+  <header>
     <h2><a href="https://ly19911114.github.io/post/java%E9%9B%86%E5%90%88%E7%B1%BB%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E9%97%AE%E9%A2%98%E4%BB%A5%E5%8F%8A%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/">Java集合类线程安全问题以及解决办法</a></h2>
     <div class="post-meta clearfix">
       <div class="post-date pull-left">
@@ -277,12 +306,12 @@ HashMap底层存储结构源码：
   <div>
     一、CAP的理论 CAP定理： 指的是在一个分布式系统中，Consistency（一致性）、 Availability（可用性）、Partition tolerance（分区容错性），三者不可同时获得。
  一致性（C）：在分布式系统中的所有数据备份，在同一时刻是否同样的值。（所有节点在同一时间的数据完全一致，越多节点，数据同步越耗时）  ​
-可用性（A）：负载过大后，集群整体是否还能响应客户端的读写请求。（服务一直可用，而且是正常响应时间）
+​ 可用性（A）：负载过大后，集群整体是否还能响应客户端的读写请求。（服务一直可用，而且是正常响应时间）
  分区容错性（P）：分区容忍性，就是高可用性，一个节点崩了，并不影响其它的节点（100个节点，挂了几个，不影响服务，越多机器越好） CAP理论就是说在分布式存储系统中，最多只能实现上面的两点。而由于当前的网络硬件肯定会出现延迟丢包等问题，所以分区容忍性是我们必须需要实现的。所以我们只能在一致性和可用性之间进行权衡  二、利用ribbiton在各个服务之间进行调用 例子：订单信息调用商品信息，代码如下
  首先在订单服务的启动类里面加入注解和ResTemplate
 @Bean @LoadBalanced public RestTemplate restTemplate() { return new RestTemplate(); }  订单服务调用商品服务的接口，采用HTTP协议
   Map productMap = restTemplate.getForObject(&ldquo;http://product-service/api/v1/product/find?id=&quot;+productId, Map.class)&mdash;》获取到商品服务的信息
- package net.xdclass.order_service.service.impl; import net.xdclass.order_service.domain.ProductOrder; import net.xdclass.order_service.service.ProductOrderService; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.cloud.client.ServiceInstance; import org.springframework.cloud.client.loadbalancer.LoadBalancerClient; import org.springframework.stereotype.Service; import org.springframework.web.client.RestTemplate; import sun.net.www.URLConnection; import sun.net.www.http.HttpClient; import java.util.Date; import java.util.Map; import java.util.UUID; @Service public class ProductOrderServiceImpl implements ProductOrderService { @Autowired private RestTemplate restTemplate; @Override public ProductOrder save(int userId, int productId) { Map&lt;String,Object&gt; productMap = restTemplate.
+package net.xdclass.order_service.service.impl; import net.xdclass.order_service.domain.ProductOrder; import net.xdclass.order_service.service.ProductOrderService; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.cloud.client.ServiceInstance; import org.springframework.cloud.client.loadbalancer.LoadBalancerClient; import org.springframework.stereotype.Service; import org.springframework.web.client.RestTemplate; import sun.net.www.URLConnection; import sun.net.www.http.HttpClient; import java.util.Date; import java.util.Map; import java.util.UUID; @Service public class ProductOrderServiceImpl implements ProductOrderService { @Autowired private RestTemplate restTemplate; @Override public ProductOrder save(int userId, int productId) { Map&lt;String,Object&gt; productMap = restTemplate.
   </div>
   
   <footer>
@@ -411,36 +440,6 @@ SpringCloud课程笔记.txt
   <footer>
     <ul class="pager">
       <li class="next"><a href="https://ly19911114.github.io/post/%E5%BE%AE%E6%9C%8D%E5%8A%A1springcloud%E5%92%8Cdocker%E7%9F%A5%E8%AF%86%E7%82%B9%E8%AF%A6%E8%A7%A3/">Read more <span aria-hidden="true">&raquo;</span></a></li>
-    </ul>
-  </footer>
-  
-</article>
-
-  
-  
-  <hr/>
-  
-  <article>
-  <header>
-    <h2><a href="https://ly19911114.github.io/post/shiro%E7%9A%84%E5%A4%8D%E7%9B%98/">Shiro的复盘</a></h2>
-    <div class="post-meta clearfix">
-      <div class="post-date pull-left">
-        Posted on
-        <time datetime="2020-02-12T20:42:30&#43;08:00">
-          Feb 12, 2020
-        </time>
-      </div>
-    </div>
-  </header>
-  <div>
-    一、前言 智慧微仓项目用Shiro添加权限认证，目前已按照业务需求，完成，现在进行总结复盘，主要以代码为主，详细的教程在之前的文章有写，请转到文章&rdquo;shiro权限与SpringBoot整合的知识点&rdquo;。
-二、自定义Realm 配置这里不再赘述，注意包不要导错，自定义的Realm要继承Shiro的AuthorizingRealm；包括授权和登录验证
-package com.jeehome.micro.warehouse.config; import com.jeehome.micro.warehouse.entity.PermissionEntity; import com.jeehome.micro.warehouse.entity.RoleEntity; import com.jeehome.micro.warehouse.entity.UserEntity; import com.jeehome.micro.warehouse.service.UserService; import org.apache.shiro.authc.AuthenticationException; import org.apache.shiro.authc.AuthenticationInfo; import org.apache.shiro.authc.AuthenticationToken; import org.apache.shiro.authc.SimpleAuthenticationInfo; import org.apache.shiro.authz.AuthorizationInfo; import org.apache.shiro.authz.SimpleAuthorizationInfo; import org.apache.shiro.realm.AuthorizingRealm; import org.apache.shiro.subject.PrincipalCollection; import org.springframework.beans.factory.annotation.Autowired; import java.util.ArrayList; import java.util.List; /** * 自定义realm */ public class CustomRealm extends AuthorizingRealm { @Autowired private UserService userService; /** * 进行权限校验的时候调用 * * @param principals * @return */ @Override protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) { System.out.println(&quot;授权 doGetAuthorizationInfo&quot;); //获取用户名 String userName = (String) principals.
-  </div>
-  
-  <footer>
-    <ul class="pager">
-      <li class="next"><a href="https://ly19911114.github.io/post/shiro%E7%9A%84%E5%A4%8D%E7%9B%98/">Read more <span aria-hidden="true">&raquo;</span></a></li>
     </ul>
   </footer>
   
