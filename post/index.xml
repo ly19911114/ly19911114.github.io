@@ -6,10 +6,19 @@
     <description>Recent content in Posts on Welcome to the mysterious world</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 22 Mar 2020 18:48:26 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 27 Mar 2020 00:01:55 +0800</lastBuildDate>
     
 	<atom:link href="https://ly19911114.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>关于设计模式</title>
+      <link>https://ly19911114.github.io/post/%E5%85%B3%E4%BA%8E%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/</link>
+      <pubDate>Fri, 27 Mar 2020 00:01:55 +0800</pubDate>
+      
+      <guid>https://ly19911114.github.io/post/%E5%85%B3%E4%BA%8E%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/</guid>
+      <description>最近在读《Heade First设计模式》一书，收获颇多，代码放在GitHub仓库上，下载地址：https://github.com/ly19911114/design-mode.git</description>
+    </item>
     
     <item>
       <title>Exist,in;not</title>
