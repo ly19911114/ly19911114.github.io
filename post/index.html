@@ -67,6 +67,38 @@
   <hr/>
   <article>
   <header>
+    <h2><a href="https://ly19911114.github.io/post/%E6%B3%A8%E8%A7%A3data%E7%9A%84%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/">注解@Data的使用说明</a></h2>
+    <div class="post-meta clearfix">
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-04-01T21:53:48&#43;08:00">
+          Apr 1, 2020
+        </time>
+      </div>
+    </div>
+  </header>
+  <div>
+    @Data 注解的主要作用是提高代码的简洁，使用这个注解可以省去代码中大量的get()、 set()、 toString()等方法；
+引入lombok 要使用 @Data 注解要先引入lombok，lombok 是什么，它是一个工具类库，可以用简单的注解形式来简化代码，提高开发效率。
+ 在maven中添加依赖
+&lt;dependency&gt; &lt;groupId&gt;org.projectlombok&lt;/groupId&gt; &lt;artifactId&gt;lombok&lt;/artifactId&gt; &lt;version&gt;1.18.4&lt;/version&gt; &lt;scope&gt;provided&lt;/scope&gt; &lt;/dependency&gt;  在编译器中添加插件 这里以IDEA为例，在setting的plugin里搜索lombok plugin，安装插件。
+  使用 直接在相应的实体类上加上@Data注解即可；
+比如一个简单的Person类，用常规的写法：
+public class Person { private String name; private String address; private Integer age; private String hobbit; private String phone; public Person() { } public Person(String name, String address, Integer age, String hobbit, String phone) { this.name = name; this.address = address; this.age = age; this.
+  </div>
+  
+  <footer>
+    <ul class="pager">
+      <li class="next"><a href="https://ly19911114.github.io/post/%E6%B3%A8%E8%A7%A3data%E7%9A%84%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/">Read more <span aria-hidden="true">&raquo;</span></a></li>
+    </ul>
+  </footer>
+  
+</article>
+
+  
+  <hr/>
+  <article>
+  <header>
     <h2><a href="https://ly19911114.github.io/post/%E5%85%B3%E4%BA%8E%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">关于设计模式</a></h2>
     <div class="post-meta clearfix">
       <div class="post-date pull-left">
