@@ -63,6 +63,46 @@
   
   <article>
   <header>
+    <h2><a href="https://ly19911114.github.io/post/%E6%B3%9B%E5%9E%8B%E8%AF%A6%E8%A7%A3/">泛型详解</a></h2>
+    <div class="post-meta clearfix">
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-04-04T11:46:14&#43;08:00">
+          Apr 4, 2020
+        </time>
+      </div>
+    </div>
+  </header>
+  <div>
+    对java的泛型特性的了解仅限于表面的浅浅一层，直到在学习设计模式时发现有不了解的用法，才想起详细的记录一下。 本文参考java 泛型详解、Java中的泛型方法、 java泛型详解  1. 概述 泛型在java中有很重要的地位，在面向对象编程及各种设计模式中有非常广泛的应用。
+什么是泛型？为什么要使用泛型？
+
+泛型，即“参数化类型”。一提到参数，最熟悉的就是定义方法时有形参，然后调用此方法时传递实参。那么参数化类型怎么理解呢？顾名思义，就是将类型由原来的具体的类型参数化，类似于方法中的变量参数，此时类型也定义成参数形式（可以称之为类型形参），然后在使用/调用时传入具体的类型（类型实参）。 泛型的本质是为了参数化类型（在不创建新的类型的情况下，通过泛型指定的不同类型来控制形参具体限制的类型）。也就是说在泛型使用过程中，操作的数据类型被指定为一个参数，这种参数类型可以用在类、接口和方法中，分别被称为泛型类、泛型接口、泛型方法。  
+2. 一个栗子 一个被举了无数次的例子：
+
+List arrayList = new ArrayList(); arrayList.add(&quot;aaaa&quot;); arrayList.add(100); for(int i = 0; i&lt; arrayList.size();i++){ String item = (String)arrayList.get(i); Log.d(&quot;泛型测试&quot;,&quot;item = &quot; + item); }  
+毫无疑问，程序的运行结果会以崩溃结束：
+java.lang.ClassCastException: java.lang.Integer cannot be cast to java.lang.String  ArrayList可以存放任意类型，例子中添加了一个String类型，添加了一个Integer类型，再使用时都以String的方式使用，因此程序崩溃了。为了解决类似这样的问题（在编译阶段就可以解决），泛型应运而生。
+我们将第一行声明初始化list的代码更改一下，编译器会在编译阶段就能够帮我们发现类似这样的问题。
+List&lt;String&gt; arrayList = new ArrayList&lt;String&gt;(); ... //arrayList.add(100); 在编译阶段，编译器就会报错  3. 特性 泛型只在编译阶段有效。看下面的代码：
+
+List&lt;String&gt; stringArrayList = new ArrayList&lt;String&gt;(); List&lt;Integer&gt; integerArrayList = new ArrayList&lt;Integer&gt;(); Class classStringArrayList = stringArrayList.
+  </div>
+  
+  <footer>
+    <ul class="pager">
+      <li class="next"><a href="https://ly19911114.github.io/post/%E6%B3%9B%E5%9E%8B%E8%AF%A6%E8%A7%A3/">Read more <span aria-hidden="true">&raquo;</span></a></li>
+    </ul>
+  </footer>
+  
+</article>
+
+  
+  
+  <hr/>
+  
+  <article>
+  <header>
     <h2><a href="https://ly19911114.github.io/post/%E6%B3%A8%E8%A7%A3data%E7%9A%84%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E/">注解@Data的使用说明</a></h2>
     <div class="post-meta clearfix">
       <div class="post-date pull-left">
@@ -385,48 +425,13 @@ HashMap底层存储结构源码：
 </article>
 
   
-  
-  <hr/>
-  
-  <article>
-  <header>
-    <h2><a href="https://ly19911114.github.io/post/springcloud%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/">SpringCloud的学习总结</a></h2>
-    <div class="post-meta clearfix">
-      <div class="post-date pull-left">
-        Posted on
-        <time datetime="2020-03-01T15:44:42&#43;08:00">
-          Mar 1, 2020
-        </time>
-      </div>
-    </div>
-  </header>
-  <div>
-    一、CAP的理论 CAP定理： 指的是在一个分布式系统中，Consistency（一致性）、 Availability（可用性）、Partition tolerance（分区容错性），三者不可同时获得。
- 一致性（C）：在分布式系统中的所有数据备份，在同一时刻是否同样的值。（所有节点在同一时间的数据完全一致，越多节点，数据同步越耗时）  ​
-​ 可用性（A）：负载过大后，集群整体是否还能响应客户端的读写请求。（服务一直可用，而且是正常响应时间）
- 分区容错性（P）：分区容忍性，就是高可用性，一个节点崩了，并不影响其它的节点（100个节点，挂了几个，不影响服务，越多机器越好） CAP理论就是说在分布式存储系统中，最多只能实现上面的两点。而由于当前的网络硬件肯定会出现延迟丢包等问题，所以分区容忍性是我们必须需要实现的。所以我们只能在一致性和可用性之间进行权衡  二、利用ribbiton在各个服务之间进行调用 例子：订单信息调用商品信息，代码如下
- 首先在订单服务的启动类里面加入注解和ResTemplate
-@Bean @LoadBalanced public RestTemplate restTemplate() { return new RestTemplate(); }  订单服务调用商品服务的接口，采用HTTP协议
-  Map productMap = restTemplate.getForObject(&ldquo;http://product-service/api/v1/product/find?id=&quot;+productId, Map.class)&mdash;》获取到商品服务的信息
-package net.xdclass.order_service.service.impl; import net.xdclass.order_service.domain.ProductOrder; import net.xdclass.order_service.service.ProductOrderService; import org.springframework.beans.factory.annotation.Autowired; import org.springframework.cloud.client.ServiceInstance; import org.springframework.cloud.client.loadbalancer.LoadBalancerClient; import org.springframework.stereotype.Service; import org.springframework.web.client.RestTemplate; import sun.net.www.URLConnection; import sun.net.www.http.HttpClient; import java.util.Date; import java.util.Map; import java.util.UUID; @Service public class ProductOrderServiceImpl implements ProductOrderService { @Autowired private RestTemplate restTemplate; @Override public ProductOrder save(int userId, int productId) { Map&lt;String,Object&gt; productMap = restTemplate.
-  </div>
-  
-  <footer>
-    <ul class="pager">
-      <li class="next"><a href="https://ly19911114.github.io/post/springcloud%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/">Read more <span aria-hidden="true">&raquo;</span></a></li>
-    </ul>
-  </footer>
-  
-</article>
-
-  
 </div>
 <nav class="pagination" role="navigation">
 
   <hr />
 
 
-  <span class="page-number">Page 1 of 2</span>
+  <span class="page-number">Page 1 of 3</span>
 
 <a class="older-posts" href="/page/2/">Older Posts <span aria-hidden="true">&raquo;</span></a>
 
