@@ -6,10 +6,24 @@
     <description>Recent content in Posts on Welcome to the mysterious world</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 04 Apr 2020 11:46:14 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 06 Apr 2020 22:06:48 +0800</lastBuildDate>
     
 	<atom:link href="https://ly19911114.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Mybatis中Like模糊查询</title>
+      <link>https://ly19911114.github.io/post/mybatis%E4%B8%ADlike%E6%A8%A1%E7%B3%8A%E6%9F%A5%E8%AF%A2/</link>
+      <pubDate>Mon, 06 Apr 2020 22:06:48 +0800</pubDate>
+      
+      <guid>https://ly19911114.github.io/post/mybatis%E4%B8%ADlike%E6%A8%A1%E7%B3%8A%E6%9F%A5%E8%AF%A2/</guid>
+      <description>模糊查询在项目中还是经常使用的，本文就简单整理Mybatis中使用Like进行模糊查询的几种写法以及一些常见的问题。
+使用Springboot简单配置一下Mybatis，然后进行说明。Springboot集成Mybatis这里就不做介绍了。
+初始数据 方式一 在Mybatis中的第一种写法：
+&amp;lt;!--有sql注入问题--&amp;gt; &amp;lt;select id=&amp;quot;findUserByLikeName1&amp;quot; parameterType=&amp;quot;java.lang.String&amp;quot; resultMap=&amp;quot;user&amp;quot;&amp;gt; select * from t_user where name like &#39;%${name}%&#39; &amp;lt;/select&amp;gt;  这种会有sql注入的问题，需要明白在 Mybatis中 $ 和 # 使用的区别。这种写法也不能加jdbcType=VARCHAR,否则也会报错。
+做了个简单的测试：
+@Test public void findUserByLikeName1(){ List&amp;lt;User&amp;gt; test = userMapper.findUserByLikeName1(&amp;quot;Cloud&amp;quot;); //select * from t_user where name like &#39;%Cloud%&#39; System.out.println(test.size());// 查出一条 List&amp;lt;User&amp;gt; test1 = userMapper.findUserByLikeName1(&amp;quot;&#39; or &#39;1=1&amp;quot;); //select * from t_user where name like &#39;%&#39; or &#39;1=1%&#39; // 分析： &#39;1=1%&#39; 成立 System.out.println(test1.size());// 查出了全部数据 }  注意：排序的字段也容易出现这个问题，在使用的时候也一定要注意。</description>
+    </item>
     
     <item>
       <title>泛型详解</title>

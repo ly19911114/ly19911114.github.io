@@ -67,6 +67,37 @@
   <hr/>
   <article>
   <header>
+    <h2><a href="https://ly19911114.github.io/post/mybatis%E4%B8%ADlike%E6%A8%A1%E7%B3%8A%E6%9F%A5%E8%AF%A2/">Mybatis中Like模糊查询</a></h2>
+    <div class="post-meta clearfix">
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-04-06T22:06:48&#43;08:00">
+          Apr 6, 2020
+        </time>
+      </div>
+    </div>
+  </header>
+  <div>
+    模糊查询在项目中还是经常使用的，本文就简单整理Mybatis中使用Like进行模糊查询的几种写法以及一些常见的问题。
+使用Springboot简单配置一下Mybatis，然后进行说明。Springboot集成Mybatis这里就不做介绍了。
+初始数据 方式一 在Mybatis中的第一种写法：
+&lt;!--有sql注入问题--&gt; &lt;select id=&quot;findUserByLikeName1&quot; parameterType=&quot;java.lang.String&quot; resultMap=&quot;user&quot;&gt; select * from t_user where name like '%${name}%' &lt;/select&gt;  这种会有sql注入的问题，需要明白在 Mybatis中 $ 和 # 使用的区别。这种写法也不能加jdbcType=VARCHAR,否则也会报错。
+做了个简单的测试：
+@Test public void findUserByLikeName1(){ List&lt;User&gt; test = userMapper.findUserByLikeName1(&quot;Cloud&quot;); //select * from t_user where name like '%Cloud%' System.out.println(test.size());// 查出一条 List&lt;User&gt; test1 = userMapper.findUserByLikeName1(&quot;' or '1=1&quot;); //select * from t_user where name like '%' or '1=1%' // 分析： '1=1%' 成立 System.out.println(test1.size());// 查出了全部数据 }  注意：排序的字段也容易出现这个问题，在使用的时候也一定要注意。
+  </div>
+  
+  <footer>
+    <ul class="pager">
+      <li class="next"><a href="https://ly19911114.github.io/post/mybatis%E4%B8%ADlike%E6%A8%A1%E7%B3%8A%E6%9F%A5%E8%AF%A2/">Read more <span aria-hidden="true">&raquo;</span></a></li>
+    </ul>
+  </footer>
+  
+</article>
+
+  
+  <hr/>
+  <article>
+  <header>
     <h2><a href="https://ly19911114.github.io/post/%E6%B3%9B%E5%9E%8B%E8%AF%A6%E8%A7%A3/">泛型详解</a></h2>
     <div class="post-meta clearfix">
       <div class="post-date pull-left">

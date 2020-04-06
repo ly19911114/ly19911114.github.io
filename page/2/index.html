@@ -63,6 +63,61 @@
   
   <article>
   <header>
+    <h2><a href="https://ly19911114.github.io/post/hash%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/">Hash底层实现原理</a></h2>
+    <div class="post-meta clearfix">
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-03-03T00:00:38&#43;08:00">
+          Mar 3, 2020
+        </time>
+      </div>
+    </div>
+  </header>
+  <div>
+    一、HashMap简介
+\1. HashMap是用于存储Key-Value键值对的集合；
+\2. HashMap根据键的hashCode值存储数据，大多数情况下可以直接定位到它的值，So具有很快的访问速度，但遍历顺序不确定；
+\3. HashMap中键key为null的记录至多只允许一条，值value为null的记录可以有多条；
+\4. HashMap非线程安全，即任一时刻允许多个线程同时写HashMap，可能会导致数据的不一致。
+图1. HashMap的继承
+*二、HashMap底层存储结构*
+从整体结构上看HashMap是由数组+链表+红黑树（JDK1.8后增加了红黑树部分）实现的。
+图2. HashMap整体存储结构
+数组：
+HashMap是一个用于存储Key-Value键值对的集合，每一个键值对也叫做一个Entry；这些Entry分散的存储在一个数组当中，该数组就是HashMap的主干。
+图3. HashMap存储Entry的数组
+链表：
+因为数组Table的长度是有限的，使用hash函数计算时可能会出现index冲突的情况，所以我们需要链表来解决冲突；数组Table的每一个元素不单纯只是一个Entry对象，它还是一个链表的头节点，每一个Entry对象通过Next指针指向下一个Entry节点；当新来的Entry映射到冲突数组位置时，只需要插入对应的链表位置即可。
+图4. HashMap链表
+index冲突例子如下：
+比如调用 hashMap.put(&ldquo;China&rdquo;, 0) ，插入一个Key为“China&rdquo;的元素；这时候我们需要利用一个哈希函数来确定Entry的具体插入位置(index)：通过index = Hash(&ldquo;China&rdquo;)，假定最后计算出的index是2，那么Entry的插入结果如下：
+图5. index冲突-1
+但是，因为HashMap的长度是有限的，当插入的Entry越来越多时，再完美的Hash函数也难免会出现index冲突的情况。比如下面这样：
+图6. index冲突-2
+经过hash函数计算发现即将插入的Entry的index值也为2，这样就会与之前插入的Key为“China”的Entry起冲突；这时就可以用链表来解决冲突，当新来的Entry映射到冲突的数组位置时，只需要插入到对应的链表即可；此外，新来的Entry节点插入链表时使用的是“头插法”，即会插在链表的头部，因为HashMap的发明者认为后插入的Entry被查找的概率更大。
+图7. index冲突-3
+红黑树：
+当链表长度超过阈值（8）时，会将链表转换为红黑树，使HashMap的性能得到进一步提升。
+图8. HashMap红黑树
+HashMap底层存储结构源码：
+*Node类用来实现数组及链表的数据结构：*
+1 /** 数组及链表的数据结构 2 * Basic hash bin node, used for most entries. (See below for 3 * TreeNode subclass, and in LinkedHashMap for its Entry subclass.
+  </div>
+  
+  <footer>
+    <ul class="pager">
+      <li class="next"><a href="https://ly19911114.github.io/post/hash%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/">Read more <span aria-hidden="true">&raquo;</span></a></li>
+    </ul>
+  </footer>
+  
+</article>
+
+  
+  
+  <hr/>
+  
+  <article>
+  <header>
     <h2><a href="https://ly19911114.github.io/post/springcloud%E7%9A%84%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/">SpringCloud的学习总结</a></h2>
     <div class="post-meta clearfix">
       <div class="post-date pull-left">
@@ -375,42 +430,6 @@ public class RfidGoodsResponse { private String goodsName; private int goodsNum;
 3.@Bean注解默认为单例模式，可以通过@Scope(&ldquo;prototype&rdquo;)设置为多例。
 /** * 配置类等价于spring-bean.xml文件 */ @Configuration public class AppConfig { /*给容器中注册一个bean,类型是方法返回值，id就是方法名称*/ @Bean public Person person() { return new Person(&quot;Kate&quot;, 12); } }  
   </div>
-  
-</article>
-
-  
-  
-  <hr/>
-  
-  <article>
-  <header>
-    <h2><a href="https://ly19911114.github.io/post/shiro%E6%9D%83%E9%99%90%E4%B8%8Espringboot%E6%95%B4%E5%90%88%E7%9A%84%E7%9F%A5%E8%AF%86%E7%82%B9/">Shiro权限与SpringBoot整合</a></h2>
-    <div class="post-meta clearfix">
-      <div class="post-date pull-left">
-        Posted on
-        <time datetime="2019-12-23T22:50:45&#43;08:00">
-          Dec 23, 2019
-        </time>
-      </div>
-    </div>
-  </header>
-  <div>
-    title: &ldquo;shiro权限框架与SpringBoot的整合&rdquo; date: 2019-12-22T16:28:13+08:00 draft: true
-近期在学习shiro的权限框架，整理资料如下：包括基本概念，单元测试，SpringBoot整合shiro框架的实操，最后是上线项目的整合
-第1章 Shiro权限实战课程介绍 第1集 Shiro权限实战课程介绍 简介：讲解为什么要学这门课，Shiro权限框架的课程大纲和学后水平
- 公司新项目需要用到、要么就是需要接收别人的代码、个人技术栈的成长 Springboot2.x/SpringMVC + Maven + jdk8 + IDEA/Eclipse
- 学后水平：掌握Shiro在公司中实际的使用，包括明白里面的核心原理
-  第2集 权限控制和初学JavaWeb处理访问权限控制 简介：讲解什么是权限控制，初学JavaWeb时处理流程
- 什么是权限控制：  忽略特别细的概念，比如权限能细分很多种，功能权限，数据权限，管理权限等 理解两个概念：用户和资源，让指定的用户，只能操作指定的资源（CRUD）  初学javaweb时怎么做
- Filter接口中有一个doFilter方法，自己编写好业务Filter，并配置对哪个web资源进行拦截后 如果访问的路径命中对应的Filter，则会执行doFilter()方法，然后判断是否有权限进行访问对应的资源 /api/user/info?id=1
-public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws Exception { HttpServletRequest httpRequest=(HttpServletRequest)request; HttpServletResponse httpResponse=(HttpServletResponse)response; HttpSession session=httpRequest.getSession(); if(session.getAttribute(&quot;username&quot;)!=null){ chain.doFilter(request, response); } else { httpResponse.sendRedirect(httpRequest.getContextPath()+&quot;/login.jsp&quot;); } }    第2章 大话权限框架核心知识ACL和RBAC 第1集 权限框架设计之ACL和RBAC讲解 简介：介绍什么是ACL和RBAC
-  </div>
-  
-  <footer>
-    <ul class="pager">
-      <li class="next"><a href="https://ly19911114.github.io/post/shiro%E6%9D%83%E9%99%90%E4%B8%8Espringboot%E6%95%B4%E5%90%88%E7%9A%84%E7%9F%A5%E8%AF%86%E7%82%B9/">Read more <span aria-hidden="true">&raquo;</span></a></li>
-    </ul>
-  </footer>
   
 </article>
 
