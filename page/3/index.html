@@ -63,6 +63,36 @@
   
   <article>
   <header>
+    <h2><a href="https://ly19911114.github.io/post/springboot%E4%B8%AD%E7%9A%84configuration%E6%B3%A8%E8%A7%A3%E5%92%8Cbean%E6%B3%A8%E8%A7%A3/">SpringBoot中的@Configuration注解和@Bean注解</a></h2>
+    <div class="post-meta clearfix">
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2019-12-23T23:38:03&#43;08:00">
+          Dec 23, 2019
+        </time>
+      </div>
+    </div>
+  </header>
+  <div>
+    @Configuration
+1.@Configuration注解底层是含有@Component ，所以@Configuration 具有和 @Component 的作用。
+2.@Configuration注解相当于spring的xml配置文件中标签，里面可以配置bean。
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt; &lt;!--实例化一个Person对象--&gt; &lt;bean id=&quot;person&quot; class=&quot;com.sff.app.bean.Person&quot;/&gt; &lt;/beans&gt;  那么@Configuration注解就相当于我们的spring-bean.xml文件中的&hellip;&hellip;，它可以这样使用。
+/** * 配置类等价于spring-bean.xml文件 */ @Configuration public class AppConfig { }  @Bean
+1.@Bean注解相当于spring的xml配置文件标签，告诉容器注入一个bean。
+2.@Bean注解的方法上如果没通过bean指定实例名，默认实例名与方法名相同。
+3.@Bean注解默认为单例模式，可以通过@Scope(&ldquo;prototype&rdquo;)设置为多例。
+/** * 配置类等价于spring-bean.xml文件 */ @Configuration public class AppConfig { /*给容器中注册一个bean,类型是方法返回值，id就是方法名称*/ @Bean public Person person() { return new Person(&quot;Kate&quot;, 12); } }  
+  </div>
+  
+</article>
+
+  
+  
+  <hr/>
+  
+  <article>
+  <header>
     <h2><a href="https://ly19911114.github.io/post/shiro%E6%9D%83%E9%99%90%E4%B8%8Espringboot%E6%95%B4%E5%90%88%E7%9A%84%E7%9F%A5%E8%AF%86%E7%82%B9/">Shiro权限与SpringBoot整合</a></h2>
     <div class="post-meta clearfix">
       <div class="post-date pull-left">
