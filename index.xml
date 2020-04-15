@@ -6,10 +6,20 @@
     <description>Recent content on Welcome to the mysterious world</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 13 Apr 2020 13:42:02 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 15 Apr 2020 11:10:02 +0800</lastBuildDate>
     
 	<atom:link href="https://ly19911114.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Lists</title>
+      <link>https://ly19911114.github.io/post/lists.newarraylist/</link>
+      <pubDate>Wed, 15 Apr 2020 11:10:02 +0800</pubDate>
+      
+      <guid>https://ly19911114.github.io/post/lists.newarraylist/</guid>
+      <description>1、List&amp;lt;Integer&amp;gt; list = new ArrayList&amp;lt;Integer&amp;gt;();  2、List&amp;lt;Integer&amp;gt; list = Lists.newArrayList();  Lists.newArrayList() 其实和 new ArrayList() 几乎一模一样, 唯一它帮你做的(其实是javac帮你做的), 就是自动推导(不是&amp;rdquo;倒&amp;rdquo;)尖括号里的数据类型。Lists是一个工具类，同样的Maps也是一个工具类，同样也可以这么使用。
+Map&amp;lt;String,Object&amp;gt; map = Maps.newHashMap();  </description>
+    </item>
     
     <item>
       <title>关于分页查询</title>
