@@ -6,10 +6,22 @@
     <description>Recent content on Welcome to the mysterious world</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 15 Apr 2020 21:06:29 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 19 Apr 2020 10:46:30 +0800</lastBuildDate>
     
 	<atom:link href="https://ly19911114.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Optional的正确使用方式</title>
+      <link>https://ly19911114.github.io/post/optional%E7%9A%84%E6%AD%A3%E7%A1%AE%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F/</link>
+      <pubDate>Sun, 19 Apr 2020 10:46:30 +0800</pubDate>
+      
+      <guid>https://ly19911114.github.io/post/optional%E7%9A%84%E6%AD%A3%E7%A1%AE%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F/</guid>
+      <description>1.当我们还在以如下几种方式使用 Optional 时, 就得开始检视自己了  调用 isPresent() 方法时 调用 get() 方法时 Optional 类型作为类/实例属性时 Optional 类型作为方法参数时   isPresent() 与 obj != null 无任何区别, 我们的生活依然在步步惊心. 而没有 isPresent() 作铺垫的 get() 调用在 IntelliJ IDEA 中会收到告警。调用 Optional.get() 前不事先用 isPresent() 检查值是否可用. 假如 Optional 不包含一个值, get() 将会抛出一个异常!
+ 把 Optional 类型用作属性或是方法参数在 IntelliJ IDEA 中更是强力不推荐的！
+ 使用任何像 Optional 的类型作为字段或方法参数都是不可取的. Optional 只设计为类库方法的, 可明确表示可能无值情况下的返回类型. Optional 类型不可被序列化, 用作字段类型会出问题的！！！
+  所以 Optional 中我们真正可依赖的应该是除了 isPresent() 和 get() 的其他方法: //按照使用频率排序如下 public&amp;lt;U&amp;gt; Optional&amp;lt;U&amp;gt; map(Function&amp;lt;?</description>
+    </item>
     
     <item>
       <title>虚拟机栈与本地方法栈</title>

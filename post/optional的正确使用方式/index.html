@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta property="og:title" content=" Optional的正确使用方式 &middot;  Welcome to the mysterious world" />
+  
+  <meta property="og:site_name" content="Welcome to the mysterious world" />
+  <meta property="og:url" content="https://ly19911114.github.io/post/optional%E7%9A%84%E6%AD%A3%E7%A1%AE%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F/" />
+  
+  
+  <meta property="og:type" content="article" />
+  
+  <meta property="og:article:published_time" content="2020-04-19T10:46:30&#43;08:00" />
+  
+  
+
+  <title>
+     Optional的正确使用方式 &middot;  Welcome to the mysterious world
+  </title>
+
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/main.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="https://ly19911114.github.io/css/github.css" />
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400" type="text/css">
+  <link rel="shortcut icon" href="https://ly19911114.github.io/images/favicon.ico" />
+  <link rel="apple-touch-icon" href="https://ly19911114.github.io/images/apple-touch-icon.png" />
+  
+</head>
+<body>
+    <header class="global-header"  style="background-image:url( /images/bg.jpg )">
+    <section class="header-text">
+      <h1><a href="https://ly19911114.github.io/">Welcome to the mysterious world</a></h1>
+      
+      <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+      
+      <a href="https://ly19911114.github.io/" class="btn-header btn-back hidden-xs">
+        <i class="fa fa-angle-left" aria-hidden="true"></i>
+        &nbsp;Home
+      </a>
+      
+      
+    </section>
+  </header>
+  <main class="container">
+
+
+<article>
+  <header>
+    <h1 class="text-primary">Optional的正确使用方式</h1>
+    <div class="post-meta clearfix">
+    
+      <div class="post-date pull-left">
+        Posted on
+        <time datetime="2020-04-19T10:46:30&#43;08:00">
+          Apr 19, 2020
+        </time>
+      </div>
+    
+      <div class="pull-right">
+        
+      </div>
+    </div>
+  </header>
+  <section>
+    
+
+<h3 id="1-当我们还在以如下几种方式使用-optional-时-就得开始检视自己了">1.当我们还在以如下几种方式使用 Optional 时, 就得开始检视自己了</h3>
+
+<ul>
+<li>调用 isPresent() 方法时</li>
+<li>调用 get() 方法时</li>
+<li>Optional 类型作为类/实例属性时</li>
+<li>Optional 类型作为方法参数时</li>
+</ul>
+
+<ol>
+<li><p>isPresent() 与 obj != null 无任何区别, 我们的生活依然在步步惊心. 而没有 isPresent() 作铺垫的 get() 调用在 IntelliJ IDEA 中会收到告警。调用 Optional.get() 前不事先用 isPresent() 检查值是否可用. 假如 Optional 不包含一个值, get() 将会抛出一个异常!</p></li>
+
+<li><p>把 Optional 类型用作属性或是方法参数在 IntelliJ IDEA 中更是强力不推荐的！</p></li>
+
+<li><p>使用任何像 Optional 的类型作为字段或方法参数都是不可取的. Optional 只设计为类库方法的, 可明确表示可能无值情况下的返回类型. Optional 类型不可被序列化, 用作字段类型会出问题的！！！</p></li>
+</ol>
+
+<h5 id="所以-optional-中我们真正可依赖的应该是除了-ispresent-和-get-的其他方法">所以 Optional 中我们真正可依赖的应该是除了 isPresent() 和 get() 的其他方法:</h5>
+
+<pre><code class="language-java">//按照使用频率排序如下
+public&lt;U&gt; Optional&lt;U&gt; map(Function&lt;? super T, ? extends U&gt; mapper)
+public T orElse(T other)
+public T orElseGet(Supplier&lt;? extends T&gt; other)
+public void ifPresent(Consumer&lt;? super T&gt; consumer)
+public Optional&lt;T&gt; filter(Predicate&lt;? super T&gt; predicate)
+public&lt;U&gt; Optional&lt;U&gt; flatMap(Function&lt;? super T, Optional&lt;U&gt;&gt; mapper)
+public &lt;X extends Throwable&gt; T orElseThrow(Supplier&lt;? extends X&gt; exceptionSupplier) throws X
+</code></pre>
+
+<p>Optional 的三种构造方式:
+Optional.of(obj), Optional.ofNullable(obj) 和明确的 Optional.empty()</p>
+
+<ol>
+<li><p>Optional.of(obj): 它要求传入的 obj 不能是 null 值的, 否则还没开始进入角色就倒在了 NullPointerException 异常上了.</p></li>
+
+<li><p>Optional.ofNullable(obj): 它以一种智能的, 宽容的方式来构造一个 Optional 实例. 来者不拒, 传 null 进到就得到 Optional.empty(), 非 null 就调用 Optional.of(obj).
+那是不是我们只要用 Optional.ofNullable(obj) 一劳永逸, 以不变应二变的方式来构造 Optional 实例就行了呢? 那也未必, 否则 Optional.of(obj) 何必如此暴露呢, 私有则可?</p></li>
+</ol>
+
+<p>#### 使用Optional.of(obj)原则</p>
+
+<p>当我们非常非常的明确将要传给 Optional.of(obj) 的 obj 参数不可能为 null 时, 比如它是一个刚 new 出来的对象(Optional.of(new User(&hellip;))), 或者是一个非 null 常量时;  2. 当想为 obj 断言不为 null 时, 即我们想在万一 obj 为 null 立即报告 NullPointException 异常, 立即修改, 而不是隐藏空指针异常时, 我们就应该果断的用 Optional.of(obj) 来构造 Optional 实例, 而不让任何不可预计的 null 值有可乘之机隐身于 Optional 中.
+    以下为Optional<T>的正确使用方式：</p>
+
+<ul>
+<li><p>存在即返回, 无则提供默认值</p>
+
+<pre><code class="language-java"> return user.orElse(null);  //而不是 return user.isPresent() ? user.get() : null;
+ return user.orElse(UNKNOWN_USER);
+</code></pre></li>
+
+<li><p>存在即返回, 无则由函数来产生</p>
+
+<pre><code class="language-java"> return user.orElseGet(() -&gt; fetchAUserFromDatabase()); //而不要 return user.isPresent() ? user: fetchAUserFromDatabase();
+</code></pre>
+
+<ul>
+<li><p>存在才对它做点什么</p>
+
+<pre><code class="language-kotlin">user.ifPresent(System.out::println);
+      
+//而不要下边那样
+if (user.isPresent()) {
+System.out.println(user.get());
+}
+</code></pre></li>
+</ul>
+
+<p>### map 函数隆重登场</p>
+
+<p>当 user.isPresent() 为真, 获得它关联的 orders的映射集合, 为假则返回一个空集合时, 我们用上面的 orElse, orElseGet 方法都乏力时, 那原本就是 map 函数的责任, 我们可以这样一行</p>
+
+<pre><code class="language-kotlin"> return user.map(u -&gt; u.getOrders()).orElse(Collections.emptyList())
+      
+ //上面避免了我们类似 Java 8 之前的做法
+ if(user.isPresent()) {
+   return user.get().getOrders();
+ } else {
+   return Collections.emptyList();
+ }
+</code></pre>
+
+<p>map  是可能无限级联的, 比如再深一层, 获得用户名的大写形式</p>
+
+<pre><code class="language-css"> return user.map(u -&gt; u.getUsername())
+            .map(name -&gt; name.toUpperCase())
+            .orElse(null);
+</code></pre>
+
+<p>这要搁在以前, 每一级调用的展开都需要放一个 null 值的判断</p>
+
+<pre><code class="language-kotlin"> User user = .....
+ if(user != null) {
+   String name = user.getUsername();
+   if(name != null) {
+     return name.toUpperCase();
+   } else {
+     return null;
+   }
+ } else {
+   return null;
+ }
+</code></pre>
+
+<ul>
+<li><p>filter() :如果有值并且满足条件返回包含该值的Optional，否则返回空Optional。</p>
+
+<pre><code class="language-csharp">Optional&lt;String&gt; longName = name.filter((value) -&gt; value.length() &gt; 6);  
+System.out.println(longName.orElse(&quot;The name is less than 6 characters&quot;));//输出Sanaulla  
+</code></pre></li>
+
+<li><p>flatMap() :
+如果有值，为其执行mapping函数返回Optional类型返回值，否则返回空Optional。flatMap与map（Funtion）方法类似，区别在于flatMap中的mapper返回值必须是Optional。调用结束时，flatMap不会对结果用Optional封装。
+flatMap方法与map方法类似，区别在于mapping函数的返回值不同。map方法的mapping函数返回值可以是任何类型T，而flatMap方法的mapping函数必须是Optional。</p>
+
+<pre><code class="language-csharp">upperName = name.flatMap((value) -&gt; Optional.of(value.toUpperCase()));  
+System.out.println(upperName.orElse(&quot;No value found&quot;));//输出SANAULLA  
+</code></pre></li>
+
+<li><p>orElseThrow() 在有值时直接返回, 无值时抛出想要的异常.</p></li>
+</ul></li>
+</ul>
+
+  </section>
+  <footer>
+    
+    
+    
+    <section class="author-info row">
+      <div class="author-avatar col-md-2">
+        
+      </div>
+      <div class="author-meta col-md-6">
+        
+        
+      </div>
+      
+    </section>
+    <ul class="pager">
+      
+      <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Older</a></li>
+      
+      
+      <li class="next"><a href="https://ly19911114.github.io/post/%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%A0%88%E4%B8%8E%E6%9C%AC%E5%9C%B0%E6%96%B9%E6%B3%95%E6%A0%88/">Newer <span aria-hidden="true">&rarr;</span></a></li>
+      
+    </ul>
+  </footer>
+</article>
+
+  </main>
+  <footer class="container global-footer">
+    <div class="copyright-note pull-left">
+      
+    </div>
+    <div class="sns-links hidden-print">
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <script src="https://ly19911114.github.io/js/highlight.pack.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+  
+  
+</body>
+</html>
+
